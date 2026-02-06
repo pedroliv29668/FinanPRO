@@ -1,12 +1,12 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Always use const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 export const modifyJsonWithAI = async (currentJson: string, instruction: string): Promise<string> => {
   const model = 'gemini-3-flash-preview';
-  
+
   const prompt = `Você é um especialista em manipulação de dados JSON. 
   O usuário forneceu o seguinte JSON:
   \`\`\`json
