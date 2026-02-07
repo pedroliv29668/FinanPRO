@@ -16,12 +16,13 @@ interface CalendarViewProps {
 const DAYS_OF_WEEK = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7:00 to 20:00
 
-const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos, clientes }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos = [], clientes = [] }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     // Calculate start of the week (Sunday) based on current reference date
     const startOfWeek = useMemo(() => {
         const d = new Date(currentDate);
+        if (isNaN(d.getTime())) return new Date();
         const day = d.getDay();
         const diff = d.getDate() - day;
         return new Date(d.setDate(diff));
@@ -81,7 +82,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
     const agendamentosDoDia = useMemo(() => {
         if (!agendamentos || !Array.isArray(agendamentos)) return [];
         return agendamentos.filter(a => {
-            if (!a.dataInicio) return false;
+            if (!a || !a.dataInicio) return false;
             const aDate = new Date(a.dataInicio);
             return aDate.getDate() === selectedDate.getDate() &&
                 aDate.getMonth() === selectedDate.getMonth() &&
@@ -131,7 +132,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                             Agenda
                         </h2>
                         <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 ml-1">
-                            {selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            {selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Data Inválida'}
                         </p>
                     </div>
                     <button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto py-3 px-6 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2" style={{ backgroundColor: appColor }}>
