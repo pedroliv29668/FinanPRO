@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 
 import { supabase } from './services/supabase';
-import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente } from './types';
+import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente, Servico } from './types';
 import AuthScreen from './components/AuthScreen';
 import CalendarView from './components/CalendarView';
 import ClientesView from './components/ClientesView';
@@ -75,7 +75,22 @@ const App: React.FC = () => {
   const [receitas, setReceitas] = useState<Receita[]>(() => getSaved('receitas', []));
   const [despesasVariaveis, setDespesasVariaveis] = useState<Despesa[]>(() => getSaved('despesasVariaveis', []));
   const [sonhos, setSonhos] = useState<SonhoExpandido[]>(() => getSaved('sonhos', []));
-  const [servicos, setServicos] = useState<string[]>(() => getSaved('servicosClinica', ['Limpeza de Pele', 'Botox', 'Drenagem', 'Preenchimento']));
+  const [servicos, setServicos] = useState<Servico[]>(() => {
+    const saved = getSaved('servicosClinica', null);
+    if (!saved) {
+      return [
+        { id: '1', nome: 'Limpeza de Pele', valor: 150 },
+        { id: '2', nome: 'Botox', valor: 800 },
+        { id: '3', nome: 'Drenagem', valor: 120 },
+        { id: '4', nome: 'Preenchimento', valor: 1200 }
+      ];
+    }
+    // Migration for old string array format
+    if (Array.isArray(saved) && typeof saved[0] === 'string') {
+      return saved.map((s: string, index: number) => ({ id: Date.now().toString() + Math.random().toString().slice(2), nome: s, valor: 0 }));
+    }
+    return saved;
+  });
   const [agendamentos, setAgendamentos] = useState<Agendamento[]>(() => getSaved('agendamentos', []));
   const [clientes, setClientes] = useState<Cliente[]>(() => getSaved('clientes', []));
 
@@ -417,6 +432,7 @@ const App: React.FC = () => {
               appColor={appColor}
               servicos={servicos}
               clientes={clientes}
+              onManageServices={() => setModalNovoServico(true)}
             />
           </div>
         )}
@@ -448,11 +464,11 @@ const App: React.FC = () => {
               </div>
             )}
 
-            <section className="rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[3rem] p-8 sm:p-10 lg:p-20 text-white shadow-2xl relative overflow-hidden group" style={{ background: `linear-gradient(135deg, ${appColor}, ${appColor}EE)` }}>
+            <section className="rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-10 lg:p-20 text-white shadow-2xl relative overflow-hidden group" style={{ background: `linear-gradient(135deg, ${appColor}, ${appColor}EE)` }}>
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none"><Activity size={240} className="sm:size-[280px]" /></div>
               <div className="relative z-10 text-center">
-                <p className="text-xs sm:text-sm lg:text-base font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-80 mb-3 sm:mb-4 animate-fadeIn">Bem-vinda(o), {userName}</p>
-                <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold uppercase tracking-tighter mb-8 sm:mb-10 leading-tight">{appName}</h1>
+                <p className="text-[10px] sm:text-xs lg:text-base font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-80 mb-3 sm:mb-4 animate-fadeIn">Bem-vinda(o), {userName}</p>
+                <h1 className="text-xl sm:text-3xl lg:text-5xl font-extrabold uppercase tracking-tighter mb-6 sm:mb-10 leading-tight">{appName}</h1>
                 <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-8">
                   <button onClick={() => setMesAtual(mesAtual > 0 ? mesAtual - 1 : 11)} className="p-3 sm:p-4 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl border border-white/20 transition-all active:scale-90 backdrop-blur-sm"><ChevronLeft size={20} className="sm:size-[24px]" /></button>
                   <div className="bg-white/15 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl border border-white/30 backdrop-blur-md shadow-xl"><span className="text-sm sm:text-xl lg:text-3xl font-extrabold tracking-widest uppercase">{meses[mesAtual]}</span></div>
@@ -462,7 +478,7 @@ const App: React.FC = () => {
             </section>
 
             {/* Seção Agenda de Hoje */}
-            <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-100 shadow-sm">
+            <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 border border-slate-100 shadow-sm">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3"><div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg text-indigo-500"><Calendar size={18} className="sm:size-[20px]" /></div>Agenda de Hoje</h2>
                 <button onClick={() => setView('agenda')} className="text-[9px] sm:text-[10px] font-bold text-indigo-500 uppercase tracking-widest hover:underline">Ver Completa</button>
@@ -507,7 +523,7 @@ const App: React.FC = () => {
               </div>
             </section>
 
-            <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-slate-100 shadow-sm">
+            <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 sm:mb-10 gap-6">
                 <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3 sm:gap-4"><div className="p-1.5 sm:p-2 bg-amber-50 rounded-lg text-amber-500"><Target size={18} className="sm:size-[20px]" /></div>Metas Mensais</h2>
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -519,7 +535,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {[
                   { label: 'Alvo Faturamento', valor: metaCalculadaPelaProjecao, color: appColor },
                   { label: 'Lucro Alvo', valor: metas.lucroLiquido, color: '#3b82f6' },
@@ -573,7 +589,7 @@ const App: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 sm:gap-8">
-              <section className="xl:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-100 shadow-sm">
+              <section className="xl:col-span-7 bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 border border-slate-100 shadow-sm">
                 <div className="flex justify-between items-center mb-6 sm:mb-8">
                   <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase flex items-center gap-3"><PiggyBank size={18} className="text-pink-500 sm:size-[20px]" /> Objetivos e Sonhos</h2>
                   <button onClick={() => setModalSonhos(true)} className="text-[9px] sm:text-[10px] font-bold text-pink-500 uppercase tracking-widest hover:underline">Novo Sonho</button>
@@ -621,7 +637,7 @@ const App: React.FC = () => {
                 </div>
               </section>
 
-              <div className="xl:col-span-5 flex flex-col gap-6">
+              <div className="xl:col-span-5 flex flex-col gap-4 sm:gap-6">
                 <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1">
                   <div className="flex justify-between items-center mb-4 sm:mb-5">
                     <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><Star size={14} className="text-indigo-500" /> Procedimentos Top</h2>
@@ -666,14 +682,17 @@ const App: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8" id="section-lancamentos">
-              <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-slate-100 shadow-md">
+              <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-md">
                 <h3 className="text-base sm:text-lg font-extrabold text-slate-800 uppercase mb-6 sm:mb-8 flex items-center gap-3"><Plus size={20} className="text-emerald-500 sm:size-[24px]" /> Lançar Receita</h3>
                 <form onSubmit={handleAddReceita} className="space-y-4 sm:space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Data</label><input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-50 outline-none" required /></div>
                     <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Cliente</label><input type="text" placeholder="Nome Completo" value={formReceita.cliente} onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value })} className="w-full bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-50 outline-none uppercase" required /></div>
                   </div>
-                  <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Procedimento</label><select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 text-sm font-bold outline-none uppercase appearance-none" required><option value="">Selecione...</option>{servicos.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
+                  <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Procedimento</label><select value={formReceita.procedimento} onChange={e => {
+                    const selected = servicos.find(s => s.nome === e.target.value);
+                    setFormReceita({ ...formReceita, procedimento: e.target.value, valor: selected ? selected.valor.toString() : formReceita.valor });
+                  }} className="w-full bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 text-sm font-bold outline-none uppercase appearance-none" required><option value="">Selecione...</option>{servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}</select></div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Pagamento</label><div className="flex gap-1 p-1 bg-slate-100 rounded-xl">{['Pix', 'Cartão', 'Dinheiro'].map(f => <button key={f} type="button" onClick={() => setFormReceita({ ...formReceita, formaPagamento: f as any })} className={`flex-1 py-1.5 sm:py-2 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase transition-all ${formReceita.formaPagamento === f ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'}`}>{f}</button>)}</div></div>
                     <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Valor (R$)</label><input type="text" placeholder="0,00" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="w-full bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-50 outline-none" required /></div>
@@ -682,7 +701,7 @@ const App: React.FC = () => {
                 </form>
               </section>
 
-              <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-slate-100 shadow-md">
+              <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-md">
                 <h3 className="text-base sm:text-lg font-extrabold text-slate-800 uppercase mb-6 sm:mb-8 flex items-center gap-3"><TrendingDown size={20} className="text-rose-500 sm:size-[24px]" /> Lançar Despesa</h3>
                 <form onSubmit={handleAddDespesa} className="space-y-4 sm:space-y-5">
                   <div><label className="text-[9px] font-bold uppercase text-slate-400 ml-1">Data</label><input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-rose-50 outline-none" required /></div>
@@ -696,7 +715,7 @@ const App: React.FC = () => {
               </section>
             </div>
 
-            <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
+            <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
               <div className="flex flex-col md:flex-row justify-between items-center mb-8 sm:mb-10 gap-6">
                 <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3 sm:gap-4"><div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg text-indigo-500"><Clock size={18} className="sm:size-[20px]" /></div>Extrato Mensal</h2>
               </div>
@@ -762,7 +781,7 @@ const App: React.FC = () => {
               </div>
             </section>
 
-            <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
+            <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
               <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3 sm:gap-4 mb-8 sm:mb-10">
                 <div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg text-indigo-500"><Lightbulb size={18} className="sm:size-[20px]" /></div>
                 Insights & Sugestões
@@ -839,7 +858,7 @@ const App: React.FC = () => {
             </header>
 
             {/* COMPARATIVO SECTION */}
-            <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-14 border border-slate-100 shadow-sm relative overflow-hidden">
+            <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-10 lg:p-14 border border-slate-100 shadow-sm relative overflow-hidden">
               <h3 className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6 sm:mb-10 px-1 border-b pb-4 sm:pb-0 sm:border-0">Comparativo: {meses[mesAtual]} vs {meses[mesAtual === 0 ? 11 : mesAtual - 1]}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
                 <div className="p-6 sm:p-10 rounded-[1.5rem] sm:rounded-[2rem] bg-slate-900 text-white shadow-xl relative overflow-hidden group">
@@ -884,7 +903,7 @@ const App: React.FC = () => {
 
             {/* EVOLUÇÃO AND GASTOS GRID */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16">
-              <section className="bg-white p-6 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
+              <section className="bg-white p-4 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
                 <h3 className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8 sm:mb-12 pb-4 border-b border-slate-200">Evolução Mensal (Faturamento)</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {analyticsData.historicoMensal.filter(h => h.faturamento > 0).slice(-4).map((h, idx, filteredArr) => {
@@ -913,7 +932,7 @@ const App: React.FC = () => {
                 </div>
               </section>
 
-              <section className="bg-white p-6 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
+              <section className="bg-white p-4 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
                 <h3 className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8 sm:mb-12 pb-4 border-b border-slate-200">Detalhamento de Gastos</h3>
                 <div className="space-y-6">
                   {[
@@ -946,7 +965,7 @@ const App: React.FC = () => {
 
             {/* DESEMPENHO SEMANAL SECTION */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 lg:gap-16">
-              <section className="lg:col-span-8 bg-white p-6 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
+              <section className="lg:col-span-8 bg-white p-4 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
                 <h3 className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6 sm:mb-10 pb-4 sm:pb-6 border-b border-slate-200">Desempenho Semanal</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
                   {analyticsData.semanas.map((s, idx) => (
@@ -1169,16 +1188,58 @@ const App: React.FC = () => {
             )
           },
           {
-            isOpen: modalNovoServico, setOpen: setModalNovoServico, title: 'Serviço', content: (
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                setServicos((prev) => [...prev, fd.get('nome') as string]);
-                setModalNovoServico(false);
-              }} className="space-y-4 sm:space-y-6">
-                <input name="nome" placeholder="Novo Procedimento" required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
-                <button type="submit" className="w-full bg-slate-900 text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest">Adicionar Serviço</button>
-              </form>
+            isOpen: modalNovoServico, setOpen: setModalNovoServico, title: 'Gerenciar Serviços', content: (
+              <div className="space-y-6">
+                {/* Add New Service Form */}
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  const nome = fd.get('nome') as string;
+                  const valor = parseFloat(fd.get('valor') as string) || 0;
+                  setServicos((prev) => [...prev, { id: Date.now().toString(), nome, valor }]);
+                  // Reset form
+                  e.currentTarget.reset();
+                }} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Adicionar Novo</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input name="nome" placeholder="Nome do Procedimento" required className="w-full bg-white p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase" />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+                      <input name="valor" type="number" step="0.01" placeholder="0,00" required className="w-full bg-white p-3 pl-8 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
+                    </div>
+                  </div>
+                  <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"><Plus size={14} /> Adicionar</button>
+                </form>
+
+                {/* List of Services */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Cadastrados</p>
+                  <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                    {servicos.map(s => (
+                      <div key={s.id} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-xl hover:shadow-sm transition-all group">
+                        <div>
+                          <p className="text-xs font-extrabold text-slate-800 uppercase">{s.nome}</p>
+                          <p className="text-[10px] font-bold text-emerald-500">{formatMoeda(s.valor)}</p>
+                        </div>
+                        <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => {
+                            const novoNome = prompt('Novo nome do serviço:', s.nome);
+                            const novoValor = prompt('Novo valor (R$):', s.valor.toString());
+                            if (novoNome && novoValor) {
+                              setServicos(prev => prev.map(item => item.id === s.id ? { ...item, nome: novoNome, valor: parseFloat(novoValor) || 0 } : item));
+                            }
+                          }} className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg"><Settings size={14} /></button>
+                          <button onClick={() => {
+                            if (confirm('Tem certeza que deseja remover este serviço?')) {
+                              setServicos(prev => prev.filter(item => item.id !== s.id));
+                            }
+                          }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )
           },
           {

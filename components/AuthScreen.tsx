@@ -43,8 +43,8 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-3 xs:p-4 sm:p-6 font-sans">
-            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 xs:p-6 sm:p-10 border border-slate-100 text-center animate-fadeIn relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-3 sm:p-4 sm:p-6 font-sans">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 sm:p-6 sm:p-10 border border-slate-100 text-center animate-fadeIn relative overflow-hidden">
 
                 {/* Decorativo de fundo */}
                 <div className="absolute top-0 left-0 w-full h-1.5" style={{ backgroundColor: appColor }}></div>

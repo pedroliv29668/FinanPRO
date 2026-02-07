@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, Scissors, Plus, X, DollarSign, CreditCard, Trash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, Scissors, Plus, X, DollarSign, CreditCard, Trash, Settings } from 'lucide-react';
 import { Agendamento, Cliente } from '../types';
 
 interface CalendarViewProps {
@@ -9,14 +9,15 @@ interface CalendarViewProps {
     onRemoveAgendamento: (id: number) => void;
     onUpdateAgendamento: (agendamento: Agendamento) => void;
     appColor: string;
-    servicos: string[];
+    servicos: { id: string; nome: string; valor: number }[];
     clientes: Cliente[];
+    onManageServices: () => void;
 }
 
 const DAYS_OF_WEEK = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7:00 to 20:00
 
-const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos = [], clientes = [] }) => {
+const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos = [], clientes = [], onManageServices }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -240,7 +241,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                         </div>
 
                                         {/* Status & Value */}
-                                        <div className="text-right hidden xs:block">
+                                        <div className="text-right hidden sm:block">
                                             <div className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase mb-1 ${isDone ? 'bg-emerald-100 text-emerald-600' :
                                                 isCanceled ? 'bg-rose-100 text-rose-600' :
                                                     'bg-indigo-50 text-indigo-600'
@@ -252,7 +253,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                     </div>
 
                                     {/* Mobile Only Status Footer */}
-                                    <div className="mt-3 pt-3 border-t border-slate-50 flex justify-between items-center xs:hidden">
+                                    <div className="mt-3 pt-3 border-t border-slate-50 flex justify-between items-center sm:hidden">
                                         <span className={`text-[9px] font-black uppercase ${isDone ? 'text-emerald-500' :
                                             isCanceled ? 'text-rose-500' :
                                                 'text-indigo-500'
@@ -276,55 +277,118 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
             </div>
 
             {/* Modal Novo Agendamento */}
-            {
-                isModalOpen && (
-                    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-fadeIn">
-                        <div className="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-lg font-extrabold text-slate-800 uppercase flex items-center gap-3"><CalendarIcon size={20} className="text-indigo-500" /> Novo Agendamento</h3>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"><X size={20} /></button>
+            {/* Modal Novo Agendamento - Premium Design */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)} />
+
+                    {/* Modal Card */}
+                    <div className="bg-white w-full sm:w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl transform transition-all animate-fadeIn flex flex-col max-h-[90vh] sm:max-h-[85vh] relative z-10">
+
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-3xl">
+                            <div>
+                                <h2 className="text-xl font-black text-slate-800 tracking-tight">Novo Agendamento</h2>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Preencha os detalhes abaixo</p>
                             </div>
-                            <form onSubmit={handleSave} className="space-y-4">
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Cliente</label>
-                                    <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <input type="text" list="clientes-list" value={newAgendamento.cliente} onChange={e => setNewAgendamento({ ...newAgendamento, cliente: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-3 pl-12 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none uppercase" placeholder="Nome do Cliente" required />
+                            <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all shadow-sm">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Scrollable Content */}
+                        <div className="overflow-y-auto p-6 custom-scrollbar space-y-6">
+                            <form id="agendamento-form" onSubmit={handleSave} className="space-y-6">
+
+                                {/* Cliente Input - Featured */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-700 uppercase tracking-wider ml-1">Cliente</label>
+                                    <div className="relative group">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-500 group-focus-within:bg-indigo-500 group-focus-within:text-white transition-all">
+                                            <User size={20} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            list="clientes-list"
+                                            value={newAgendamento.cliente}
+                                            onChange={e => setNewAgendamento({ ...newAgendamento, cliente: e.target.value.toUpperCase() })}
+                                            className="w-full bg-slate-50 hover:bg-slate-100 focus:bg-white p-4 pl-16 rounded-2xl border-2 border-transparent focus:border-indigo-500 outline-none text-base font-bold text-slate-800 placeholder:text-slate-400 transition-all shadow-sm"
+                                            placeholder="Nome do cliente"
+                                            required
+                                        />
                                         <datalist id="clientes-list">
                                             {clientes.map(c => <option key={c.id} value={c.nome} />)}
                                         </datalist>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Serviço</label>
-                                    <div className="relative">
-                                        <Scissors className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                                        <select value={newAgendamento.servico} onChange={e => setNewAgendamento({ ...newAgendamento, servico: e.target.value })} className="w-full bg-slate-50 p-3 pl-12 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none uppercase appearance-none" required>
-                                            <option value="">Selecione...</option>
-                                            {servicos.map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Data</label>
-                                        <input type="date" value={newAgendamento.data} onChange={e => setNewAgendamento({ ...newAgendamento, data: e.target.value })} className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none" required />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Horário</label>
-                                        <input type="time" value={newAgendamento.hora} onChange={e => setNewAgendamento({ ...newAgendamento, hora: e.target.value })} className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none" required />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Valor (R$)</label>
-                                        <div className="relative">
-                                            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                                            <input type="number" step="0.01" value={newAgendamento.valor} onChange={e => setNewAgendamento({ ...newAgendamento, valor: e.target.value })} className="w-full bg-slate-50 p-3 pl-10 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none" placeholder="0,00" />
+
+                                {/* Servico & Valor Row */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Serviço</label>
+                                        <div className="flex gap-2">
+                                            <div className="relative group flex-1">
+                                                <Scissors className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                                                <select
+                                                    value={newAgendamento.servico}
+                                                    onChange={e => {
+                                                        const selectedService = servicos.find(s => s.nome === e.target.value);
+                                                        setNewAgendamento({
+                                                            ...newAgendamento,
+                                                            servico: e.target.value,
+                                                            valor: selectedService ? selectedService.valor.toString() : newAgendamento.valor
+                                                        });
+                                                    }}
+                                                    className="w-full bg-slate-50 p-3.5 pl-12 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none appearance-none cursor-pointer hover:border-indigo-200 transition-all"
+                                                    required
+                                                >
+                                                    <option value="">Selecione...</option>
+                                                    {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {s.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</option>)}
+                                                </select>
+                                            </div>
+                                            <button type="button" onClick={onManageServices} className="p-3.5 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all" title="Gerenciar Serviços">
+                                                <Settings size={20} />
+                                            </button>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Pagamento</label>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Valor</label>
+                                        <div className="relative group">
+                                            <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={16} />
+                                            <input type="number" step="0.01" value={newAgendamento.valor} onChange={e => setNewAgendamento({ ...newAgendamento, valor: e.target.value })} className="w-full bg-slate-50 p-3.5 pl-10 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-emerald-100 outline-none" placeholder="0,00" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Date & Time Check */}
+                                <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-wider ml-1">Data</label>
+                                            <input type="date" value={newAgendamento.data} onChange={e => setNewAgendamento({ ...newAgendamento, data: e.target.value })} className="w-full bg-white p-3 rounded-xl border border-indigo-100 text-sm font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-200 outline-none" required />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-indigo-400 uppercase tracking-wider ml-1">Horário</label>
+                                            <input type="time" value={newAgendamento.hora} onChange={e => setNewAgendamento({ ...newAgendamento, hora: e.target.value })} className="w-full bg-white p-3 rounded-xl border border-indigo-100 text-sm font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-200 outline-none" required />
+                                        </div>
+                                    </div>
+
+                                    {/* Duration Pills */}
+                                    <div className="space-y-2 pt-2 border-t border-indigo-100/50">
+                                        <label className="text-[10px] font-black text-indigo-400 uppercase tracking-wider ml-1">Duração Estimada</label>
+                                        <div className="flex gap-2">
+                                            {[30, 60, 90, 120].map(m => (
+                                                <button key={m} type="button" onClick={() => setNewAgendamento({ ...newAgendamento, duracao: m.toString() })} className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all ${newAgendamento.duracao === m.toString() ? 'bg-indigo-500 text-white shadow-md transform scale-105' : 'bg-white text-indigo-300 hover:bg-indigo-50'}`}>{m} min</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Payment & Status */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Pagamento</label>
                                         <div className="relative">
                                             <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                             <select value={newAgendamento.formaPagamento} onChange={e => setNewAgendamento({ ...newAgendamento, formaPagamento: e.target.value })} className="w-full bg-slate-50 p-3 pl-10 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none appearance-none uppercase text-slate-600">
@@ -335,49 +399,48 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                             </select>
                                         </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Duração (min)</label>
-                                    <div className="flex gap-2">
-                                        {[30, 60, 90, 120].map(m => (
-                                            <button key={m} type="button" onClick={() => setNewAgendamento({ ...newAgendamento, duracao: m.toString() })} className={`flex-1 py-2 rounded-lg text-[10px] font-bold border ${newAgendamento.duracao === m.toString() ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{m} min</button>
-                                        ))}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Status</label>
+                                        <select value={newAgendamento.status} onChange={e => setNewAgendamento({ ...newAgendamento, status: e.target.value as any })} className="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-sm font-bold focus:ring-2 focus:ring-indigo-100 outline-none appearance-none uppercase text-slate-600">
+                                            <option value="Agendado">Agendado</option>
+                                            <option value="Atendido">Atendido</option>
+                                            <option value="Cancelado">Cancelado</option>
+                                        </select>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Status Inicial</label>
-                                    <div className="flex gap-2">
-                                        {(['Agendado', 'Atendido', 'Cancelado'] as const).map(s => (
-                                            <button key={s} type="button" onClick={() => setNewAgendamento({ ...newAgendamento, status: s })} className={`flex-1 py-2 rounded-lg text-[9px] font-bold border transition-all ${newAgendamento.status === s ? 'bg-indigo-50 border-indigo-200 text-indigo-600 shadow-sm' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>{s.toUpperCase()}</button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Cor do Destaque</label>
-                                    <div className="flex flex-wrap gap-2">
+
+
+                                {/* Color */}
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Etiqueta de Cor</label>
+                                    <div className="flex flex-wrap gap-3">
                                         {['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#3b82f6'].map(color => (
                                             <button
                                                 key={color}
                                                 type="button"
                                                 onClick={() => setNewAgendamento({ ...newAgendamento, cor: color })}
-                                                className={`w-7 h-7 rounded-full border-2 transition-all ${newAgendamento.cor === color ? 'border-slate-900 scale-110 shadow-md' : 'border-transparent hover:scale-105'}`}
+                                                className={`w-8 h-8 rounded-full transition-all flex items-center justify-center ${newAgendamento.cor === color ? 'ring-4 ring-slate-100 scale-110 shadow-lg' : 'hover:scale-110 opacity-70 hover:opacity-100'}`}
                                                 style={{ backgroundColor: color }}
-                                            />
+                                            >
+                                                {newAgendamento.cor === color && <div className="w-2 h-2 bg-white rounded-full" />}
+                                            </button>
                                         ))}
-                                        <input
-                                            type="color"
-                                            value={newAgendamento.cor}
-                                            onChange={e => setNewAgendamento({ ...newAgendamento, cor: e.target.value })}
-                                            className="w-7 h-7 rounded-full border-2 border-slate-200 bg-transparent cursor-pointer p-0 overflow-hidden"
-                                        />
                                     </div>
                                 </div>
-                                <button type="submit" className="w-full bg-indigo-500 text-white py-3.5 rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg hover:bg-indigo-600 transition-all mt-4">Salvar Agendamento</button>
+
                             </form>
                         </div>
+
+                        {/* Footer Actions */}
+                        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl">
+                            <button type="submit" form="agendamento-form" className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest shadow-xl hover:bg-slate-800 hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center justify-center gap-3" style={{ backgroundColor: appColor }}>
+                                <CalendarIcon size={18} /> Confirmar Agendamento
+                            </button>
+                        </div>
+
                     </div>
-                )
-            }
+                </div>
+            )}
         </div >
     );
 };

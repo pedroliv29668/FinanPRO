@@ -195,7 +195,7 @@ const ClientesView: React.FC<ClientesViewProps> = ({
         return (
             <div className="space-y-4 sm:space-y-6 animate-fadeIn pb-24">
                 {/* Header */}
-                <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <h1 className="text-lg sm:text-xl font-extrabold text-slate-800 uppercase tracking-tight flex items-center gap-2 sm:gap-3">
                             <div className="p-2 sm:p-2.5 rounded-xl" style={{ backgroundColor: `${appColor}15`, color: appColor }}>
@@ -212,7 +212,7 @@ const ClientesView: React.FC<ClientesViewProps> = ({
 
                 {/* Aniversariantes do Mês */}
                 {aniversariantesDoMes.length > 0 && (
-                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-3 xs:p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-pink-100">
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 p-3 sm:p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-pink-100">
                         <div className="flex items-center gap-2 mb-3">
                             <Cake size={16} className="text-pink-500" />
                             <p className="text-[10px] sm:text-xs font-extrabold text-pink-600 uppercase tracking-widest">
@@ -235,7 +235,7 @@ const ClientesView: React.FC<ClientesViewProps> = ({
                 )}
 
                 {/* Busca e Ordenação */}
-                <div className="flex flex-col xs:flex-row gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input
@@ -246,17 +246,17 @@ const ClientesView: React.FC<ClientesViewProps> = ({
                             className="w-full bg-white p-3 sm:p-3.5 pl-10 rounded-xl border border-slate-200 text-sm font-medium focus:border-slate-300 outline-none"
                         />
                     </div>
-                    <div className="flex gap-1 p-1 bg-slate-100 rounded-xl self-start xs:self-auto w-full xs:w-auto">
+                    <div className="flex gap-1 p-1 bg-slate-100 rounded-xl self-start sm:self-auto w-full sm:w-auto">
                         <button
                             onClick={() => setOrdenacao('gastos')}
-                            className={`flex-1 xs:flex-none px-3 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase transition-all ${ordenacao === 'gastos' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
+                            className={`flex-1 sm:flex-none px-3 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase transition-all ${ordenacao === 'gastos' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
                                 }`}
                         >
                             💰 Top
                         </button>
                         <button
                             onClick={() => setOrdenacao('nome')}
-                            className={`flex-1 xs:flex-none px-3 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase transition-all ${ordenacao === 'nome' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
+                            className={`flex-1 sm:flex-none px-3 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase transition-all ${ordenacao === 'nome' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
                                 }`}
                         >
                             A-Z
@@ -269,7 +269,7 @@ const ClientesView: React.FC<ClientesViewProps> = ({
                     {clientesFiltrados.map((cliente, index) => (
                         <div
                             key={cliente.id}
-                            className={`bg-white rounded-xl sm:rounded-2xl p-3 xs:p-4 border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99] ${isAniversariante(cliente.aniversario) ? 'ring-2 ring-pink-200' : ''
+                            className={`bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.99] ${isAniversariante(cliente.aniversario) ? 'ring-2 ring-pink-200' : ''
                                 }`}
                             onClick={() => handleVerDetalhes(cliente)}
                         >
