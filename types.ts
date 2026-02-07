@@ -36,6 +36,7 @@ export interface Agendamento {
   status?: 'Agendado' | 'Atendido' | 'Cancelado';
   cor?: string;
   duracao?: string;
+  statusPagamento?: 'Pago' | 'Pendente';
 }
 
 export interface Cliente {

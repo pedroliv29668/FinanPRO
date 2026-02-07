@@ -30,8 +30,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
         formaPagamento: '',
         status: 'Agendado' as 'Agendado' | 'Atendido' | 'Cancelado',
         cor: '#6366f1',
-        duracao: '60'
+        duracao: '60',
+        statusPagamento: 'Pendente' as 'Pago' | 'Pendente'
     });
+    const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+
+    // Generic navigation that handles both Week and Month modes
+    const navigateDate = (direction: 'next' | 'prev') => {
+        const newDate = new Date(currentDate);
+        if (viewMode === 'week') {
+            newDate.setDate(currentDate.getDate() + (direction === 'next' ? 7 : -7));
+            const newSelected = new Date(brandNewDate(newDate, selectedDate.getDay()));
+            setSelectedDate(newSelected);
+        } else {
+            newDate.setMonth(currentDate.getMonth() + (direction === 'next' ? 1 : -1));
+            // When changing months, select the 1st of the new month
+            const firstDay = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+            setSelectedDate(firstDay);
+        }
+        setCurrentDate(newDate);
+    };
 
     // Calculate start of the week (Sunday) based on current reference date
     const startOfWeek = useMemo(() => {
@@ -51,15 +69,37 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
         });
     }, [startOfWeek]);
 
-    const navigateWeek = (direction: 'next' | 'prev') => {
-        const newDate = new Date(currentDate);
-        newDate.setDate(currentDate.getDate() + (direction === 'next' ? 7 : -7));
-        setCurrentDate(newDate);
-        // Also move selection to the start of that week or keep same day index?
-        // Let's keep it simple: just change the week view, user clicks day to select.
-        // Or better: Auto-select the same weekday of new week
-        const newSelected = new Date(brandNewDate(newDate, selectedDate.getDay()));
-        setSelectedDate(newSelected);
+    // Generate days for the Month Grid
+    const monthDays = useMemo(() => {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        const days = [];
+        const startPadding = firstDay.getDay(); // 0 (Sun) to 6 (Sat)
+
+        // Add padding days from previous month
+        for (let i = 0; i < startPadding; i++) {
+            days.push(null);
+        }
+
+        // Add actual days
+        for (let i = 1; i <= lastDay.getDate(); i++) {
+            days.push(new Date(year, month, i));
+        }
+
+        return days;
+    }, [currentDate]);
+
+    const getAgendamentosForDate = (date: Date) => {
+        if (!agendamentos) return [];
+        return agendamentos.filter(a => {
+            const aDate = new Date(a.dataInicio);
+            return aDate.getDate() === date.getDate() &&
+                aDate.getMonth() === date.getMonth() &&
+                aDate.getFullYear() === date.getFullYear();
+        });
     };
 
     function brandNewDate(base: Date, dayIndex: number) {
@@ -86,10 +126,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
             valor: parseFloat(newAgendamento.valor) || 0,
             formaPagamento: newAgendamento.formaPagamento as 'Pix' | 'Cartão' | 'Dinheiro' | undefined,
             status: newAgendamento.status,
-            cor: newAgendamento.cor
+            cor: newAgendamento.cor,
+            statusPagamento: newAgendamento.statusPagamento
         });
         setIsModalOpen(false);
-        setNewAgendamento({ ...newAgendamento, cliente: '', servico: '', valor: '', formaPagamento: '', status: 'Agendado' });
+        setNewAgendamento({
+            ...newAgendamento,
+            cliente: '',
+            servico: '',
+            valor: '',
+            formaPagamento: '',
+            status: 'Agendado',
+            statusPagamento: 'Pendente'
+        });
     };
 
     // Filter appointments for the SELECTED DATE
@@ -145,8 +194,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                             <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-500"><CalendarIcon size={24} /></div>
                             Agenda
                         </h2>
+                        <div className="flex bg-slate-100 rounded-lg p-1 ml-4 self-center">
+                            <button
+                                onClick={() => setViewMode('week')}
+                                className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${viewMode === 'week' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                Semana
+                            </button>
+                            <button
+                                onClick={() => setViewMode('month')}
+                                className={`px-3 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${viewMode === 'month' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                Mês
+                            </button>
+                        </div>
                         <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 ml-1">
-                            {selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Data Inválida'}
+                            {viewMode === 'week'
+                                ? (selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) : 'Data Inválida')
+                                : currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+                            }
                         </p>
                     </div>
                     <button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto py-3 px-6 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2" style={{ backgroundColor: appColor }}>
@@ -155,27 +221,68 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                 </div>
 
                 {/* Week Strip */}
-                <div className="flex items-center gap-2 sm:gap-4 bg-slate-50/50 p-2 rounded-2xl">
-                    <button onClick={() => navigateWeek('prev')} className="p-2 sm:p-3 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400 hover:text-slate-600"><ChevronLeft size={20} /></button>
-                    <div className="flex-1 flex justify-between gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
-                        {weekDays.map((date, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setSelectedDate(date)}
-                                className={`flex-1 min-w-[45px] sm:min-w-[60px] flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl transition-all border-2 ${isSelected(date)
-                                    ? 'bg-white border-indigo-500 shadow-md transform scale-105'
-                                    : 'bg-transparent border-transparent hover:bg-white hover:shadow-sm'
-                                    }`}
-                                style={{ borderColor: isSelected(date) ? appColor : 'transparent' }}
-                            >
-                                <span className={`text-[9px] sm:text-[10px] font-black uppercase mb-1 ${isSelected(date) ? 'text-indigo-600' : 'text-slate-400'}`} style={{ color: isSelected(date) ? appColor : '' }}>{DAYS_OF_WEEK[date.getDay()]}</span>
-                                <span className={`text-base sm:text-lg font-black ${isSelected(date) ? 'text-slate-800' : 'text-slate-500'} ${isToday(date) && !isSelected(date) ? 'text-indigo-500' : ''}`}>{date.getDate()}</span>
-                                {isToday(date) && <div className="mt-1 w-1 h-1 rounded-full bg-indigo-500" style={{ backgroundColor: appColor }}></div>}
-                            </button>
-                        ))}
+                {/* Content based on View Mode */}
+                {viewMode === 'week' ? (
+                    <div className="flex items-center gap-2 sm:gap-4 bg-slate-50/50 p-2 rounded-2xl">
+                        <button onClick={() => navigateDate('prev')} className="p-2 sm:p-3 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400 hover:text-slate-600"><ChevronLeft size={20} /></button>
+                        <div className="flex-1 flex justify-between gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
+                            {weekDays.map((date, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setSelectedDate(date)}
+                                    className={`flex-1 min-w-[45px] sm:min-w-[60px] flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl transition-all border-2 ${isSelected(date)
+                                        ? 'bg-white border-indigo-500 shadow-md transform scale-105'
+                                        : 'bg-transparent border-transparent hover:bg-white hover:shadow-sm'
+                                        }`}
+                                    style={{ borderColor: isSelected(date) ? appColor : 'transparent' }}
+                                >
+                                    <span className={`text-[9px] sm:text-[10px] font-black uppercase mb-1 ${isSelected(date) ? 'text-indigo-600' : 'text-slate-400'}`} style={{ color: isSelected(date) ? appColor : '' }}>{DAYS_OF_WEEK[date.getDay()]}</span>
+                                    <span className={`text-base sm:text-lg font-black ${isSelected(date) ? 'text-slate-800' : 'text-slate-500'} ${isToday(date) && !isSelected(date) ? 'text-indigo-500' : ''}`}>{date.getDate()}</span>
+                                    {isToday(date) && <div className="mt-1 w-1 h-1 rounded-full bg-indigo-500" style={{ backgroundColor: appColor }}></div>}
+                                </button>
+                            ))}
+                        </div>
+                        <button onClick={() => navigateDate('next')} className="p-2 sm:p-3 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400 hover:text-slate-600"><ChevronRight size={20} /></button>
                     </div>
-                    <button onClick={() => navigateWeek('next')} className="p-2 sm:p-3 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400 hover:text-slate-600"><ChevronRight size={20} /></button>
-                </div>
+                ) : (
+                    <div className="p-2 bg-slate-50/50 rounded-2xl">
+                        <div className="flex items-center justify-between mb-2 px-2">
+                            <button onClick={() => navigateDate('prev')} className="p-2 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400"><ChevronLeft size={20} /></button>
+                            <span className="text-sm font-black text-slate-700 uppercase">{currentDate.toLocaleDateString('pt-BR', { month: 'long' })}</span>
+                            <button onClick={() => navigateDate('next')} className="p-2 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400"><ChevronRight size={20} /></button>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                            {DAYS_OF_WEEK.map(d => <div key={d} className="text-center text-[9px] font-black text-slate-400 uppercase py-2">{d[0]}</div>)}
+                            {monthDays.map((date, i) => {
+                                if (!date) return <div key={`empty-${i}`} className="aspect-square"></div>;
+                                const count = getAgendamentosForDate(date).length;
+                                const hasPending = getAgendamentosForDate(date).some(a => a.statusPagamento === 'Pendente');
+
+                                return (
+                                    <button
+                                        key={date.toISOString()}
+                                        onClick={() => {
+                                            setSelectedDate(date);
+                                            setViewMode('week');
+                                            // Ensure week view focuses on this week
+                                            setCurrentDate(date);
+                                        }}
+                                        className={`aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all border ${isToday(date) ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-transparent hover:shadow-md text-slate-600'
+                                            }`}
+                                    >
+                                        <span className="text-xs sm:text-sm font-bold">{date.getDate()}</span>
+                                        {count > 0 && (
+                                            <div className="flex gap-0.5 mt-1">
+                                                {hasPending && <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>}
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" style={{ backgroundColor: hasPending ? undefined : appColor }}></div>
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Daily Stats */}
@@ -249,6 +356,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                                 {ag.status}
                                             </div>
                                             <p className="text-sm font-black text-slate-700">R$ {ag.valor?.toFixed(2)}</p>
+                                            {ag.statusPagamento === 'Pendente' && (
+                                                <div className="mt-1 flex items-center justify-end gap-1 text-[9px] font-bold text-rose-500 uppercase tracking-wide">
+                                                    <DollarSign size={10} /> Pendente
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
@@ -258,7 +370,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                             isCanceled ? 'text-rose-500' :
                                                 'text-indigo-500'
                                             }`}>{ag.status}</span>
-                                        <span className="text-xs font-black text-slate-700">R$ {ag.valor?.toFixed(2)}</span>
+                                        <span className="text-xs font-black text-slate-700 flex flex-col items-end">
+                                            <span>R$ {ag.valor?.toFixed(2)}</span>
+                                            {ag.statusPagamento === 'Pendente' && <span className="text-[9px] text-rose-500 uppercase mt-0.5">Pgto Pendente</span>}
+                                        </span>
                                     </div>
                                 </div>
                             );
@@ -406,6 +521,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                             <option value="Atendido">Atendido</option>
                                             <option value="Cancelado">Cancelado</option>
                                         </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1">Pagamento Status</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewAgendamento({ ...newAgendamento, statusPagamento: 'Pago' })}
+                                                className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase transition-all ${newAgendamento.statusPagamento === 'Pago' ? 'bg-emerald-100 text-emerald-600 ring-2 ring-emerald-200' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                Pago
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setNewAgendamento({ ...newAgendamento, statusPagamento: 'Pendente' })}
+                                                className={`flex-1 py-3 rounded-xl text-xs font-bold uppercase transition-all ${newAgendamento.statusPagamento === 'Pendente' ? 'bg-rose-100 text-rose-600 ring-2 ring-rose-200' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                                            >
+                                                Pendente
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
