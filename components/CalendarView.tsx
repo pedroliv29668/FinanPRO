@@ -18,6 +18,19 @@ const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7:00 to 20:00
 
 const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos = [], clientes = [] }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [newAgendamento, setNewAgendamento] = useState({
+        cliente: '',
+        servico: '',
+        data: '',
+        hora: '',
+        valor: '',
+        formaPagamento: '',
+        status: 'Agendado' as 'Agendado' | 'Atendido' | 'Cancelado',
+        cor: '#6366f1',
+        duracao: '60'
+    });
 
     // Calculate start of the week (Sunday) based on current reference date
     const startOfWeek = useMemo(() => {
