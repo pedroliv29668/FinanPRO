@@ -53,11 +53,12 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                     <Activity size={32} />
                 </div>
 
+
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 uppercase tracking-tight mb-2 leading-tight">
-                    {appName}
+                    FinanPRO
                 </h1>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">
-                    {isLogin ? 'Bem-vinda(o) de volta' : 'Crie sua conta agora'}
+                    {isLogin ? 'Bem-vindo(a) de volta' : 'Crie sua conta agora'}
                 </p>
 
                 {error && (
@@ -77,7 +78,8 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 p-3.5 sm:p-4 pl-12 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
+                                className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
+                                style={{ paddingLeft: '48px' }}
                                 placeholder="seu@email.com"
                             />
                         </div>
@@ -91,7 +93,8 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 p-3.5 sm:p-4 pl-12 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
+                                className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
+                                style={{ paddingLeft: '48px' }}
                                 placeholder="••••••••"
                             />
                         </div>
