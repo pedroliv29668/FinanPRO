@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, Scissors, Plus, X, DollarSign, CreditCard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, User, Scissors, Plus, X, DollarSign, CreditCard, Trash } from 'lucide-react';
 import { Agendamento, Cliente } from '../types';
 
 interface CalendarViewProps {
@@ -16,22 +16,10 @@ interface CalendarViewProps {
 const DAYS_OF_WEEK = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const HOURS = Array.from({ length: 14 }, (_, i) => i + 7); // 7:00 to 20:00
 
-const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos, onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos, clientes }) => {
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newAgendamento, setNewAgendamento] = useState({
-        cliente: '',
-        servico: '',
-        data: new Date().toISOString().split('T')[0],
-        hora: '09:00',
-        duracao: '60', // minutes
-        valor: '',
-        formaPagamento: '',
-        status: 'Agendado' as 'Agendado' | 'Atendido' | 'Cancelado',
-        cor: '#6366f1' // Default Indigo
-    });
+const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAgendamento, onRemoveAgendamento, onUpdateAgendamento, appColor, servicos, clientes }) => {
+    const [selectedDate, setSelectedDate] = useState(new Date());
 
-    // Calculate start of the week (Sunday)
+    // Calculate start of the week (Sunday) based on current reference date
     const startOfWeek = useMemo(() => {
         const d = new Date(currentDate);
         const day = d.getDay();
@@ -39,7 +27,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos, onAddAgendame
         return new Date(d.setDate(diff));
     }, [currentDate]);
 
-    // Generate days for the header
+    // Generate days for the header strip
     const weekDays = useMemo(() => {
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date(startOfWeek);
@@ -52,11 +40,27 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos, onAddAgendame
         const newDate = new Date(currentDate);
         newDate.setDate(currentDate.getDate() + (direction === 'next' ? 7 : -7));
         setCurrentDate(newDate);
+        // Also move selection to the start of that week or keep same day index?
+        // Let's keep it simple: just change the week view, user clicks day to select.
+        // Or better: Auto-select the same weekday of new week
+        const newSelected = new Date(brandNewDate(newDate, selectedDate.getDay()));
+        setSelectedDate(newSelected);
     };
+
+    function brandNewDate(base: Date, dayIndex: number) {
+        const result = new Date(base);
+        const currentDay = result.getDay();
+        const distance = dayIndex - currentDay;
+        result.setDate(result.getDate() + distance);
+        return result;
+    }
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        const startDateTime = new Date(`${newAgendamento.data}T${newAgendamento.hora}`);
+        const datePart = newAgendamento.data; // YYYY-MM-DD
+        const timePart = newAgendamento.hora; // HH:MM
+
+        const startDateTime = new Date(`${datePart}T${timePart}`);
         const endDateTime = new Date(startDateTime.getTime() + parseInt(newAgendamento.duracao) * 60000);
 
         onAddAgendamento({
@@ -73,33 +77,28 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos, onAddAgendame
         setNewAgendamento({ ...newAgendamento, cliente: '', servico: '', valor: '', formaPagamento: '', status: 'Agendado' });
     };
 
-    const getAgendamentosForDay = (date: Date) => {
+    // Filter appointments for the SELECTED DATE
+    const agendamentosDoDia = useMemo(() => {
+        if (!agendamentos || !Array.isArray(agendamentos)) return [];
         return agendamentos.filter(a => {
+            if (!a.dataInicio) return false;
             const aDate = new Date(a.dataInicio);
-            return aDate.getDate() === date.getDate() &&
-                aDate.getMonth() === date.getMonth() &&
-                aDate.getFullYear() === date.getFullYear();
-        });
-    };
+            return aDate.getDate() === selectedDate.getDate() &&
+                aDate.getMonth() === selectedDate.getMonth() &&
+                aDate.getFullYear() === selectedDate.getFullYear();
+        }).sort((a, b) => new Date(a.dataInicio).getTime() - new Date(b.dataInicio).getTime());
+    }, [agendamentos, selectedDate]);
 
-    const statsHoje = useMemo(() => {
-        const hoje = getAgendamentosForDay(new Date());
-        const atendidos = hoje.filter(a => a.status === 'Atendido');
-        const cancelados = hoje.filter(a => a.status === 'Cancelado');
-        const agendados = hoje.filter(a => a.status === 'Agendado' || !a.status);
+    // Stats for the SELECTED DATE (not just today)
+    const statsDia = useMemo(() => {
+        const total = agendamentosDoDia.length;
+        const atendidos = agendamentosDoDia.filter(a => a.status === 'Atendido').length;
+        const pendentes = agendamentosDoDia.filter(a => a.status === 'Agendado').length;
+        const faturado = agendamentosDoDia.filter(a => a.status === 'Atendido').reduce((acc, curr) => acc + (curr.valor || 0), 0);
+        const projetado = agendamentosDoDia.reduce((acc, curr) => acc + (curr.valor || 0), 0);
 
-        const ganho = atendidos.reduce((acc, a) => acc + (a.valor || 0), 0);
-        const perdido = cancelados.reduce((acc, a) => acc + (a.valor || 0), 0);
-
-        return {
-            total: hoje.length,
-            atendidos: atendidos.length,
-            cancelados: cancelados.length,
-            agendados: agendados.length,
-            ganho,
-            perdido
-        };
-    }, [agendamentos]);
+        return { total, atendidos, pendentes, faturado, projetado };
+    }, [agendamentosDoDia]);
 
     const handleToggleStatus = (ag: Agendamento) => {
         const statuses: ('Agendado' | 'Atendido' | 'Cancelado')[] = ['Agendado', 'Atendido', 'Cancelado'];
@@ -108,128 +107,165 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos, onAddAgendame
         onUpdateAgendamento({ ...ag, status: statuses[nextIndex] });
     };
 
+    const isToday = (date: Date) => {
+        const today = new Date();
+        return date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
+    };
+
+    const isSelected = (date: Date) => {
+        return date.getDate() === selectedDate.getDate() &&
+            date.getMonth() === selectedDate.getMonth() &&
+            date.getFullYear() === selectedDate.getFullYear();
+    };
+
     return (
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 border border-slate-100 shadow-sm animate-fadeIn h-full flex flex-col">
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h2 className="text-xl font-extrabold text-slate-800 uppercase flex items-center gap-3">
-                    <div className="p-2 bg-indigo-50 rounded-lg text-indigo-500"><CalendarIcon size={24} /></div>
-                    Agenda Semanal
-                </h2>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center bg-slate-50 rounded-xl p-1 border border-slate-100">
-                        <button onClick={() => navigateWeek('prev')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-500"><ChevronLeft size={20} /></button>
-                        <span className="px-4 text-xs font-bold text-slate-600 uppercase w-32 text-center">
-                            {startOfWeek.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
-                        </span>
-                        <button onClick={() => navigateWeek('next')} className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-500"><ChevronRight size={20} /></button>
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm animate-fadeIn h-full flex flex-col overflow-hidden">
+            {/* Header / Week Navigation */}
+            <div className="p-4 sm:p-6 lg:p-8 border-b border-slate-100 bg-white z-10">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                    <div>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                            <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-500"><CalendarIcon size={24} /></div>
+                            Agenda
+                        </h2>
+                        <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1 ml-1">
+                            {selectedDate.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </p>
                     </div>
-                    <button onClick={() => setIsModalOpen(true)} className="py-2.5 px-5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg transition-all flex items-center gap-2">
-                        <Plus size={16} /> Novo Agendamento
+                    <button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto py-3 px-6 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2" style={{ backgroundColor: appColor }}>
+                        <Plus size={18} /> Novo Agendamento
                     </button>
+                </div>
+
+                {/* Week Strip */}
+                <div className="flex items-center gap-2 sm:gap-4 bg-slate-50/50 p-2 rounded-2xl">
+                    <button onClick={() => navigateWeek('prev')} className="p-2 sm:p-3 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400 hover:text-slate-600"><ChevronLeft size={20} /></button>
+                    <div className="flex-1 flex justify-between gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
+                        {weekDays.map((date, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setSelectedDate(date)}
+                                className={`flex-1 min-w-[45px] sm:min-w-[60px] flex flex-col items-center justify-center py-2 sm:py-3 rounded-xl transition-all border-2 ${isSelected(date)
+                                    ? 'bg-white border-indigo-500 shadow-md transform scale-105'
+                                    : 'bg-transparent border-transparent hover:bg-white hover:shadow-sm'
+                                    }`}
+                                style={{ borderColor: isSelected(date) ? appColor : 'transparent' }}
+                            >
+                                <span className={`text-[9px] sm:text-[10px] font-black uppercase mb-1 ${isSelected(date) ? 'text-indigo-600' : 'text-slate-400'}`} style={{ color: isSelected(date) ? appColor : '' }}>{DAYS_OF_WEEK[date.getDay()]}</span>
+                                <span className={`text-base sm:text-lg font-black ${isSelected(date) ? 'text-slate-800' : 'text-slate-500'} ${isToday(date) && !isSelected(date) ? 'text-indigo-500' : ''}`}>{date.getDate()}</span>
+                                {isToday(date) && <div className="mt-1 w-1 h-1 rounded-full bg-indigo-500" style={{ backgroundColor: appColor }}></div>}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={() => navigateWeek('next')} className="p-2 sm:p-3 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-400 hover:text-slate-600"><ChevronRight size={20} /></button>
                 </div>
             </div>
 
-            {/* Dashboard de Estatísticas */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-                {[
-                    { label: 'Hoje', val: statsHoje.total, color: 'text-slate-600', bg: 'bg-slate-50' },
-                    { label: 'Atendidos', val: statsHoje.atendidos, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Cancelados', val: statsHoje.cancelados, color: 'text-rose-600', bg: 'bg-rose-50' },
-                    { label: 'Faturado', val: `R$ ${statsHoje.ganho.toFixed(0)}`, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { label: 'Perdido', val: `R$ ${statsHoje.perdido.toFixed(0)}`, color: 'text-amber-600', bg: 'bg-amber-50' },
-                ].map((s, idx) => (
-                    <div key={idx} className={`${s.bg} p-3 rounded-2xl border border-white shadow-sm flex flex-col justify-center`}>
-                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
-                        <p className={`text-sm font-black ${s.color}`}>{s.val}</p>
+            {/* Daily Stats */}
+            <div className="px-4 sm:px-6 lg:px-8 py-4 bg-slate-50/30 border-b border-slate-100 flex gap-4 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center"><User size={16} /></div>
+                    <div>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">Clientes</p>
+                        <p className="text-sm font-black text-slate-800">{statsDia.total}</p>
                     </div>
-                ))}
+                </div>
+                <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"><CalendarIcon size={16} /></div>
+                    <div>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">Confirmados</p>
+                        <p className="text-sm font-black text-slate-800">{statsDia.atendidos}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-100 shadow-sm shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center"><DollarSign size={16} /></div>
+                    <div>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">Projetado</p>
+                        <p className="text-sm font-black text-slate-800">R$ {statsDia.projetado.toFixed(0)}</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="flex-1 overflow-x-auto custom-scrollbar relative bg-slate-50/50 rounded-2xl border border-slate-100">
-                <div className="min-w-[800px] h-full flex flex-col">
-                    {/* Header das Datas */}
-                    <div className="grid grid-cols-8 border-b border-slate-200 bg-white sticky top-0 z-10">
-                        <div className="p-1 text-[9px] font-bold text-slate-400 uppercase text-center border-r border-slate-100 py-2">Horário</div>
-                        {weekDays.map((date, i) => (
-                            <div key={i} className={`p-1 text-center border-r border-slate-100 last:border-r-0 py-2 ${date.toDateString() === new Date().toDateString() ? 'bg-indigo-50/30' : ''}`}>
-                                <p className="text-[8px] font-bold text-slate-400 uppercase mb-0.5">{DAYS_OF_WEEK[date.getDay()]}</p>
-                                <p className={`text-sm font-black ${date.toDateString() === new Date().toDateString() ? 'text-indigo-600' : 'text-slate-800'}`}>{date.getDate()}</p>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Grid de Horários */}
-                    <div className="relative flex-1">
-                        {HOURS.map(hour => (
-                            <div key={hour} className="grid grid-cols-8 h-[48px] border-b border-slate-100 last:border-b-0">
-                                <div className="text-[9px] font-bold text-slate-400 border-r border-slate-100 p-1 text-center relative -top-2 bg-transparent">{hour}:00</div>
-                                {weekDays.map((date, i) => (
-                                    <div key={i} className="border-r border-slate-100 last:border-r-0 relative group hover:bg-slate-50 transition-colors">
-                                        {/* Botão invisível para adicionar ao clicar no horário (futuro) */}
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-
-                        {/* Renderização dos Agendamentos (Posicionamento Absoluto) */}
-                        {agendamentos.map(ag => {
-                            const start = new Date(ag.dataInicio);
-                            const end = new Date(ag.dataFim);
-
-                            // Verificar se está na semana atual visível e horário dentro do range (simples)
-                            if (start < startOfWeek || start > weekDays[6]) return null;
-
-                            const dayIndex = start.getDay() + 1; // 0 is Sunday (col 1 is time, so day 0 is col 2 => index + 1)
-
-                            const startHour = start.getHours();
-                            const startMin = start.getMinutes();
-                            const durationMins = (end.getTime() - start.getTime()) / 60000;
-
-                            // Calcular posição top (Baseado em 48px de altura por hora, começando as 7h)
-                            // 7h = 0px. 8h = 48px.
-                            const topPosition = ((startHour - 7) * 48) + ((startMin / 60) * 48);
-                            const height = (durationMins / 60) * 48;
-
-                            if (topPosition < 0) return null; // Antes das 7h não mostramos por enqto
+            {/* Appointments List */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar bg-slate-50/30">
+                {agendamentosDoDia.length > 0 ? (
+                    <div className="space-y-3 max-w-3xl mx-auto">
+                        {agendamentosDoDia.map(ag => {
+                            const time = new Date(ag.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            const isDone = ag.status === 'Atendido';
+                            const isCanceled = ag.status === 'Cancelado';
 
                             return (
-                                <div
-                                    key={ag.id}
-                                    onClick={() => handleToggleStatus(ag)}
-                                    className={`absolute rounded-lg p-2 border-l-4 shadow-sm hover:shadow-md transition-all cursor-pointer overflow-hidden z-20 group ${ag.status === 'Cancelado' ? 'opacity-50 grayscale' : ''}`}
-                                    style={{
-                                        top: `${topPosition}px`,
-                                        height: `${height}px`,
-                                        left: `${(dayIndex) * (100 / 8)}%`, // Aproximado para grid de 8 colunas
-                                        width: `${(100 / 8) - 0.5}%`,
-                                        backgroundColor: ag.status === 'Atendido' ? '#ECFDF5' : ag.status === 'Cancelado' ? '#FEF2F2' : `${ag.cor || appColor}15`,
-                                        borderColor: ag.status === 'Atendido' ? '#10B981' : ag.status === 'Cancelado' ? '#EF4444' : (ag.cor || appColor),
-                                        marginLeft: '2px'
-                                    }}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <p className="text-[10px] font-bold text-slate-700 truncate leading-tight uppercase">{ag.cliente}</p>
-                                        <button onClick={(e) => { e.stopPropagation(); onRemoveAgendamento(ag.id); }} className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 transition-opacity"><X size={12} /></button>
+                                <div key={ag.id} onClick={() => handleToggleStatus(ag)} className={`group bg-white p-4 sm:p-5 rounded-2xl border-l-4 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden ${isDone ? 'opacity-80' : ''}`}
+                                    style={{ borderLeftColor: ag.cor || appColor }}>
+
+                                    {isDone && <div className="absolute right-4 top-4 text-emerald-500 opacity-20"><CalendarIcon size={64} /></div>}
+                                    {isCanceled && <div className="absolute right-4 top-4 text-rose-500 opacity-20"><X size={64} /></div>}
+
+                                    <div className="flex items-center gap-4 sm:gap-6 relative z-10">
+                                        {/* Time Box */}
+                                        <div className="flex flex-col items-center justify-center min-w-[60px] sm:min-w-[80px] py-2 border-r border-slate-100 pr-4 sm:pr-6">
+                                            <span className="text-lg sm:text-xl font-black text-slate-800">{time}</span>
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase">{ag.duracao} min</span>
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className={`text-base sm:text-lg font-extrabold uppercase truncate ${isCanceled ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{ag.cliente}</h3>
+                                                <div className="flex gap-2">
+                                                    <button onClick={(e) => { e.stopPropagation(); onRemoveAgendamento(ag.id); }} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash size={16} /></button>
+                                                </div>
+                                            </div>
+                                            <p className="text-xs sm:text-sm font-bold text-slate-500 mt-1 flex items-center gap-2">
+                                                <Scissors size={14} className="text-slate-300" />
+                                                {ag.servico}
+                                            </p>
+                                        </div>
+
+                                        {/* Status & Value */}
+                                        <div className="text-right hidden xs:block">
+                                            <div className={`inline-flex px-3 py-1 rounded-full text-[9px] font-black uppercase mb-1 ${isDone ? 'bg-emerald-100 text-emerald-600' :
+                                                isCanceled ? 'bg-rose-100 text-rose-600' :
+                                                    'bg-indigo-50 text-indigo-600'
+                                                }`}>
+                                                {ag.status}
+                                            </div>
+                                            <p className="text-sm font-black text-slate-700">R$ {ag.valor?.toFixed(2)}</p>
+                                        </div>
                                     </div>
-                                    <p className="text-[9px] font-semibold text-slate-500 truncate mt-0.5">{ag.servico}</p>
-                                    <div className="flex justify-between items-center mt-1">
-                                        <p className="text-[8px] font-bold text-slate-400 flex items-center gap-1"><Clock size={10} /> {startHour}:{startMin.toString().padStart(2, '0')}</p>
-                                        {ag.status && (
-                                            <span className={`text-[7px] font-black uppercase px-1 rounded ${ag.status === 'Atendido' ? 'text-emerald-500' : ag.status === 'Cancelado' ? 'text-rose-500' : 'text-indigo-500'}`}>{ag.status}</span>
-                                        )}
+
+                                    {/* Mobile Only Status Footer */}
+                                    <div className="mt-3 pt-3 border-t border-slate-50 flex justify-between items-center xs:hidden">
+                                        <span className={`text-[9px] font-black uppercase ${isDone ? 'text-emerald-500' :
+                                            isCanceled ? 'text-rose-500' :
+                                                'text-indigo-500'
+                                            }`}>{ag.status}</span>
+                                        <span className="text-xs font-black text-slate-700">R$ {ag.valor?.toFixed(2)}</span>
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-                </div>
+                ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-center opacity-60">
+                        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-300">
+                            <CalendarIcon size={48} />
+                        </div>
+                        <h3 className="text-xl font-black text-slate-300 uppercase tracking-widest">Dia Livre</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase mt-2 max-w-[200px]">Nenhum agendamento para este dia. Aproveite para descansar!</p>
+                        <button onClick={() => setIsModalOpen(true)} className="mt-8 text-indigo-500 font-bold text-xs uppercase hover:underline" style={{ color: appColor }}>+ Adicionar Agendamento</button>
+                    </div>
+                )}
             </div>
 
             {/* Modal Novo Agendamento */}
             {
                 isModalOpen && (
                     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-fadeIn">
-                        <div className="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl">
+                        <div className="bg-white rounded-3xl w-full max-w-md p-6 sm:p-8 shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-extrabold text-slate-800 uppercase flex items-center gap-3"><CalendarIcon size={20} className="text-indigo-500" /> Novo Agendamento</h3>
                                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"><X size={20} /></button>

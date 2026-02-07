@@ -35,6 +35,7 @@ export interface Agendamento {
   formaPagamento?: 'Pix' | 'Cartão' | 'Dinheiro';
   status?: 'Agendado' | 'Atendido' | 'Cancelado';
   cor?: string;
+  duracao?: string;
 }
 
 export interface Cliente {
