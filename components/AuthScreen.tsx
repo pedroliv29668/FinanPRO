@@ -43,8 +43,8 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 sm:p-6 font-sans">
-            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-6 sm:p-10 border border-slate-100 text-center animate-fadeIn relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-3 xs:p-4 sm:p-6 font-sans">
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-5 xs:p-6 sm:p-10 border border-slate-100 text-center animate-fadeIn relative overflow-hidden">
 
                 {/* Decorativo de fundo */}
                 <div className="absolute top-0 left-0 w-full h-1.5" style={{ backgroundColor: appColor }}></div>
@@ -57,7 +57,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                 <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 uppercase tracking-tight mb-2 leading-tight">
                     FinanPRO
                 </h1>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 sm:mb-8">
                     {isLogin ? 'Bem-vindo(a) de volta' : 'Crie sua conta agora'}
                 </p>
 
@@ -78,7 +78,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
+                                className="w-full bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
                                 style={{ paddingLeft: '48px' }}
                                 placeholder="seu@email.com"
                             />
@@ -93,7 +93,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
+                                className="w-full bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-100 focus:border-slate-300 outline-none transition-all text-sm font-medium text-slate-700 placeholder:text-slate-300"
                                 style={{ paddingLeft: '48px' }}
                                 placeholder="••••••••"
                             />
@@ -103,7 +103,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed min-h-[48px]"
                         style={{ backgroundColor: appColor }}
                     >
                         {loading ? (

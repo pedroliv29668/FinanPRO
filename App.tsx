@@ -452,7 +452,7 @@ const App: React.FC = () => {
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none"><Activity size={240} className="sm:size-[280px]" /></div>
               <div className="relative z-10 text-center">
                 <p className="text-xs sm:text-sm lg:text-base font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-80 mb-3 sm:mb-4 animate-fadeIn">Bem-vinda(o), {userName}</p>
-                <h1 className="text-2xl sm:text-3xl lg:text-6xl font-extrabold uppercase tracking-tighter mb-8 sm:mb-10 leading-tight">{appName}</h1>
+                <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold uppercase tracking-tighter mb-8 sm:mb-10 leading-tight">{appName}</h1>
                 <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-8">
                   <button onClick={() => setMesAtual(mesAtual > 0 ? mesAtual - 1 : 11)} className="p-3 sm:p-4 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl border border-white/20 transition-all active:scale-90 backdrop-blur-sm"><ChevronLeft size={20} className="sm:size-[24px]" /></button>
                   <div className="bg-white/15 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl border border-white/30 backdrop-blur-md shadow-xl"><span className="text-sm sm:text-xl lg:text-3xl font-extrabold tracking-widest uppercase">{meses[mesAtual]}</span></div>
