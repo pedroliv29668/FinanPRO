@@ -25,6 +25,7 @@ import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente, Se
 import AuthScreen from './components/AuthScreen';
 import CalendarView from './components/CalendarView';
 import ClientesView from './components/ClientesView';
+import MarketingView from './components/MarketingView';
 
 const meses = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 
@@ -58,7 +59,7 @@ const App: React.FC = () => {
   const [mesAtual, setMesAtual] = useState<number>(new Date().getMonth());
   const [anoAtual] = useState(new Date().getFullYear());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [view, setView] = useState<'dashboard' | 'reports' | 'agenda' | 'clientes'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'reports' | 'agenda' | 'clientes' | 'marketing'>('dashboard');
 
   const [modalMetas, setModalMetas] = useState(false);
   const [modalFixos, setModalFixos] = useState(false);
@@ -417,7 +418,7 @@ const App: React.FC = () => {
           <button onClick={() => setIsSidebarOpen(true)} className="p-2 sm:p-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-all active:scale-95"><Menu size={20} /></button>
           <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
             <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: appColor }}></div>
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{view === 'dashboard' ? 'Overview' : view === 'agenda' ? 'Agenda Semanal' : view === 'clientes' ? 'Clientes' : 'Relatórios'}</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{view === 'dashboard' ? 'Overview' : view === 'agenda' ? 'Agenda Semanal' : view === 'clientes' ? 'Clientes' : view === 'marketing' ? 'Marketing' : 'Relatórios'}</span>
           </div>
           <div className="w-9 h-9 sm:w-10 sm:h-10 bg-slate-900 rounded-xl flex items-center justify-center text-[10px] sm:text-[11px] font-bold text-white shadow-md">CLI</div>
         </header>
@@ -443,7 +444,16 @@ const App: React.FC = () => {
             setClientes={setClientes}
             receitas={receitas}
             appColor={appColor}
-            servicos={servicos}
+            servicos={servicos.map(s => s.nome)}
+          />
+        )}
+
+        {view === 'marketing' && (
+          <MarketingView
+            clientes={clientes}
+            agendamentos={agendamentos}
+            receitas={receitas}
+            appColor={appColor}
           />
         )}
 
@@ -1303,6 +1313,7 @@ const App: React.FC = () => {
                 <button onClick={() => { setView('agenda'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'agenda' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: view === 'agenda' ? appColor : 'transparent' }}><Calendar size={18} className="sm:size-[20px]" /> Agenda</button>
                 <button onClick={() => { setView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart3 size={18} className="sm:size-[20px]" /> Analytics</button>
                 <button onClick={() => { setView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} className="sm:size-[20px]" /> Clientes</button>
+                <button onClick={() => { setView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} className="sm:size-[20px]" /> Marketing</button>
                 <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} className="sm:size-[20px]" /> Estilo</button>
                 <div className="pt-6 sm:pt-10 border-t mt-6 sm:mt-10">
                   <button onClick={() => { handleLogout(); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 text-rose-500 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-50 transition-all"><Lock size={18} className="sm:size-[20px]" /> Sair</button>
