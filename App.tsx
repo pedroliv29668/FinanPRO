@@ -21,6 +21,7 @@ import {
 } from 'recharts';
 
 import { supabase } from './services/supabase';
+import { getAIInsight } from './services/geminiService';
 import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente, Servico } from './types';
 import AuthScreen from './components/AuthScreen';
 import CalendarView from './components/CalendarView';
@@ -67,6 +68,9 @@ const App: React.FC = () => {
   const [modalNovoServico, setModalNovoServico] = useState(false);
   const [modalConfig, setModalConfig] = useState(false);
   const [modalClientes, setModalClientes] = useState(false);
+  const [modalIA, setModalIA] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [isAILoading, setIsAILoading] = useState(false);
   const [filtroClientes, setFiltroClientes] = useState('');
   const [clienteExternoParaEditar, setClienteExternoParaEditar] = useState<Cliente | null>(null);
   const [hasLoadedData, setHasLoadedData] = useState(false);
@@ -424,6 +428,40 @@ const App: React.FC = () => {
     return agendamentos.filter(a => a.dataInicio.split('T')[0] === tomorrowStr);
   }, [agendamentos]);
 
+  const handleGenerateInsight = async () => {
+    setIsAILoading(true);
+    setModalIA(true);
+    setAiResponse('');
+
+    const summary = {
+      faturamentoTotal: totalReceitas,
+      faturamentoMesAnterior: totalReceitasAnterior,
+      metaFaturamento: metaCalculadaPelaProjecao,
+      despesasFixas: totalFixos,
+      despesasVariaveis: totalVariaveis,
+      lucroLiquido: lucroReal,
+      margemLucro: margemReal,
+      topServicos: topServicos.map(s => ({ nome: s[0], valor: s[1] })),
+      totalAgendamentos: agendamentosMes.length,
+      resumoPagamentos: pagamentosResumo,
+      projeçãoCrescimento: projecaoSelecionada
+    };
+
+    try {
+      const insight = await getAIInsight(summary);
+      setAiResponse(insight);
+    } catch (err) {
+      setAiResponse("Ocorreu um erro ao gerar sua consultoria. Verifique sua chave API do Gemini.");
+    } finally {
+      setIsAILoading(false);
+    }
+  };
+
+  const agendamentosMes = useMemo(() => agendamentos.filter(a => {
+    const d = new Date(a.dataInicio);
+    return d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+  }), [agendamentos, mesAtual, anoAtual]);
+
   useEffect(() => {
     if (agendamentosAmanha.length > 0 && 'Notification' in window) {
       if (Notification.permission === 'default') {
@@ -522,10 +560,23 @@ const App: React.FC = () => {
               <div className="relative z-10 text-center">
                 <p className="text-[10px] sm:text-xs lg:text-base font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-80 mb-3 sm:mb-4 animate-fadeIn">Bem-vinda(o), {userName}</p>
                 <h1 className="text-xl sm:text-3xl lg:text-5xl font-extrabold uppercase tracking-tighter mb-6 sm:mb-10 leading-tight">{appName}</h1>
-                <div className="flex items-center justify-center gap-3 sm:gap-4 lg:gap-8">
-                  <button onClick={() => setMesAtual(mesAtual > 0 ? mesAtual - 1 : 11)} className="p-3 sm:p-4 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl border border-white/20 transition-all active:scale-90 backdrop-blur-sm"><ChevronLeft size={20} className="sm:size-[24px]" /></button>
-                  <div className="bg-white/15 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl border border-white/30 backdrop-blur-md shadow-xl"><span className="text-sm sm:text-xl lg:text-3xl font-extrabold tracking-widest uppercase">{meses[mesAtual]}</span></div>
-                  <button onClick={() => setMesAtual(mesAtual < 11 ? mesAtual + 1 : 0)} className="p-3 sm:p-4 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl border border-white/20 transition-all active:scale-90 backdrop-blur-sm"><ChevronRight size={20} className="sm:size-[24px]" /></button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+                  <div className="flex items-center gap-3 sm:gap-4 lg:gap-8 order-2 sm:order-1">
+                    <button onClick={() => setMesAtual(mesAtual > 0 ? mesAtual - 1 : 11)} className="p-3 sm:p-4 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl border border-white/20 transition-all active:scale-90 backdrop-blur-sm"><ChevronLeft size={20} className="sm:size-[24px]" /></button>
+                    <div className="bg-white/15 px-6 sm:px-10 py-3 sm:py-4 rounded-2xl sm:rounded-3xl border border-white/30 backdrop-blur-md shadow-xl min-w-[140px] sm:min-w-[200px]"><span className="text-sm sm:text-xl lg:text-3xl font-extrabold tracking-widest uppercase">{meses[mesAtual]}</span></div>
+                    <button onClick={() => setMesAtual(mesAtual < 11 ? mesAtual + 1 : 0)} className="p-3 sm:p-4 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl border border-white/20 transition-all active:scale-90 backdrop-blur-sm"><ChevronRight size={20} className="sm:size-[24px]" /></button>
+                  </div>
+
+                  <button
+                    onClick={handleGenerateInsight}
+                    className="order-1 sm:order-2 px-8 py-5 bg-white text-slate-800 rounded-2xl font-black uppercase text-[11px] sm:text-xs tracking-widest shadow-2xl hover:bg-indigo-50 transition-all active:scale-95 flex items-center gap-3 border-b-4 border-indigo-200 hover:border-indigo-300"
+                    style={{ color: appColor }}
+                  >
+                    <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-inner">
+                      <Lightbulb size={20} className="animate-pulse" />
+                    </div>
+                    Consultoria IA
+                  </button>
                 </div>
               </div>
             </section>
@@ -1391,6 +1442,38 @@ const App: React.FC = () => {
                 <button type="submit" className="w-full bg-slate-900 text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg hover:shadow-indigo-500/20 transition-all font-sans" style={{ backgroundColor: appColor }}>Cadastrar Cliente</button>
               </form>
             )
+          },
+          {
+            isOpen: modalIA, setOpen: setModalIA, title: 'Consultoria Estratégica IA', content: (
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                {isAILoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                    <div className="w-16 h-16 border-4 border-slate-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Analisando seus dados...</p>
+                  </div>
+                ) : (
+                  <div className="prose prose-slate max-w-none">
+                    <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-lg">
+                          <Lightbulb size={20} />
+                        </div>
+                        <h3 className="text-lg font-black text-indigo-900 uppercase tracking-tight">Insights do Consultor</h3>
+                      </div>
+                      <div className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium font-outfit">
+                        {aiResponse || "Carregando insights..."}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setModalIA(false)}
+                      className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-slate-800 transition-all"
+                    >
+                      Entendido, obrigado!
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
           }
         ].map((modal, idx) => modal.isOpen && (
           <div key={idx} className="fixed inset-0 z-[500] flex items-center justify-center p-4 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-fadeIn">
@@ -1418,6 +1501,14 @@ const App: React.FC = () => {
                 <button onClick={() => { setView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} className="sm:size-[20px]" /> Clientes</button>
                 <button onClick={() => { setView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} className="sm:size-[20px]" /> Marketing</button>
                 <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} className="sm:size-[20px]" /> Estilo</button>
+                <div className="pt-4 mt-4 border-t border-slate-50">
+                  <button
+                    onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
+                    className="w-full flex items-center gap-4 p-4 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-indigo-100 transition-all shadow-sm"
+                  >
+                    <Lightbulb size={18} className="sm:size-[20px]" /> Consultoria IA
+                  </button>
+                </div>
                 <div className="pt-6 sm:pt-10 border-t mt-6 sm:mt-10">
                   <button onClick={() => { handleLogout(); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 text-rose-500 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-50 transition-all"><Lock size={18} className="sm:size-[20px]" /> Sair</button>
                 </div>
