@@ -22,6 +22,8 @@ import {
 
 import { supabase } from './services/supabase';
 import { getAIInsight } from './services/geminiService';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente, Servico } from './types';
 import AuthScreen from './components/AuthScreen';
 import CalendarView from './components/CalendarView';
@@ -569,13 +571,13 @@ const App: React.FC = () => {
 
                   <button
                     onClick={handleGenerateInsight}
-                    className="order-1 sm:order-2 px-8 py-5 bg-white text-slate-800 rounded-2xl font-black uppercase text-[11px] sm:text-xs tracking-widest shadow-2xl hover:bg-indigo-50 transition-all active:scale-95 flex items-center gap-3 border-b-4 border-indigo-200 hover:border-indigo-300"
-                    style={{ color: appColor }}
+                    className="order-1 sm:order-2 px-8 py-5 bg-white/10 text-white rounded-[2rem] font-black uppercase text-[11px] sm:text-xs tracking-widest shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all active:scale-95 flex items-center gap-3 border border-white/20 backdrop-blur-xl relative group overflow-hidden"
                   >
-                    <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-inner">
-                      <Lightbulb size={20} className="animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative flex items-center gap-3">
+                      <Sparkles size={20} className="animate-pulse" />
+                      <span className="relative z-10">Consultoria Estratégica</span>
                     </div>
-                    Consultoria IA
                   </button>
                 </div>
               </div>
@@ -1460,8 +1462,10 @@ const App: React.FC = () => {
                         </div>
                         <h3 className="text-lg font-black text-indigo-900 uppercase tracking-tight">Insights do Consultor</h3>
                       </div>
-                      <div className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap font-medium font-outfit">
-                        {aiResponse || "Carregando insights..."}
+                      <div className="text-slate-700 text-sm leading-relaxed prose prose-indigo prose-sm max-w-none font-medium font-outfit">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {aiResponse || "Carregando insights estratégicos..."}
+                        </ReactMarkdown>
                       </div>
                     </div>
                     <button
@@ -1501,12 +1505,16 @@ const App: React.FC = () => {
                 <button onClick={() => { setView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} className="sm:size-[20px]" /> Clientes</button>
                 <button onClick={() => { setView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${view === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} className="sm:size-[20px]" /> Marketing</button>
                 <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} className="sm:size-[20px]" /> Estilo</button>
-                <div className="pt-4 mt-4 border-t border-slate-50">
+                <div className="pt-4 mt-4 border-t border-slate-50 px-2">
                   <button
                     onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
-                    className="w-full flex items-center gap-4 p-4 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-indigo-100 transition-all shadow-sm"
+                    className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(99,102,241,0.3)] group"
                   >
-                    <Lightbulb size={18} className="sm:size-[20px]" /> Consultoria IA
+                    <div className="flex items-center gap-3">
+                      <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
+                      <span>Estratégia IA</span>
+                    </div>
+                    <ChevronRight size={14} className="opacity-50" />
                   </button>
                 </div>
                 <div className="pt-6 sm:pt-10 border-t mt-6 sm:mt-10">
