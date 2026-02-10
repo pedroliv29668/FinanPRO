@@ -11,6 +11,8 @@ interface ClientesViewProps {
     receitas: Receita[];
     appColor: string;
     servicos: string[];
+    clienteExternoParaEditar?: Cliente | null;
+    onClearExterno?: () => void;
 }
 
 type ViewMode = 'lista' | 'cadastro' | 'detalhes';
@@ -20,7 +22,9 @@ const ClientesView: React.FC<ClientesViewProps> = ({
     setClientes,
     receitas,
     appColor,
-    servicos
+    servicos,
+    clienteExternoParaEditar,
+    onClearExterno
 }) => {
     const [busca, setBusca] = useState('');
     const [viewMode, setViewMode] = useState<ViewMode>('lista');
@@ -145,6 +149,29 @@ const ClientesView: React.FC<ClientesViewProps> = ({
         setClienteDetalhes(cliente);
         setViewMode('detalhes');
     };
+
+    // Efeito para tratar edição externa ( vindo do Marketing )
+    React.useEffect(() => {
+        if (clienteExternoParaEditar) {
+            setClienteEditando(clienteExternoParaEditar);
+            setFormCliente({
+                nome: clienteExternoParaEditar.nome,
+                telefone: clienteExternoParaEditar.telefone || '',
+                email: clienteExternoParaEditar.email || '',
+                aniversario: clienteExternoParaEditar.aniversario || '',
+                observacoes: clienteExternoParaEditar.observacoes || '',
+                anamnese: {
+                    alergias: clienteExternoParaEditar.anamnese?.alergias || '',
+                    problemasSaude: clienteExternoParaEditar.anamnese?.problemasSaude || '',
+                    medicamentos: clienteExternoParaEditar.anamnese?.medicamentos || '',
+                    gestante: clienteExternoParaEditar.anamnese?.gestante || false,
+                    observacoesClinicas: clienteExternoParaEditar.anamnese?.observacoesClinicas || ''
+                }
+            });
+            setViewMode('cadastro');
+            onClearExterno?.();
+        }
+    }, [clienteExternoParaEditar, onClearExterno]);
 
     const handleSalvarCliente = (e: React.FormEvent) => {
         e.preventDefault();

@@ -68,6 +68,7 @@ const App: React.FC = () => {
   const [modalConfig, setModalConfig] = useState(false);
   const [modalClientes, setModalClientes] = useState(false);
   const [filtroClientes, setFiltroClientes] = useState('');
+  const [clienteExternoParaEditar, setClienteExternoParaEditar] = useState<Cliente | null>(null);
 
   const [appName, setAppName] = useState(() => getSaved('appName', 'Gestão Clínica Estética'));
   const [appColor, setAppColor] = useState(() => getSaved('appColor', '#009b72'));
@@ -445,6 +446,8 @@ const App: React.FC = () => {
             receitas={receitas}
             appColor={appColor}
             servicos={servicos.map(s => s.nome)}
+            clienteExternoParaEditar={clienteExternoParaEditar}
+            onClearExterno={() => setClienteExternoParaEditar(null)}
           />
         )}
 
@@ -454,6 +457,10 @@ const App: React.FC = () => {
             agendamentos={agendamentos}
             receitas={receitas}
             appColor={appColor}
+            onEditCliente={(cliente) => {
+              setClienteExternoParaEditar(cliente);
+              setView('clientes');
+            }}
           />
         )}
 

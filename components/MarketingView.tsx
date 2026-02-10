@@ -10,11 +10,12 @@ interface MarketingViewProps {
     agendamentos: Agendamento[];
     receitas: Receita[];
     appColor: string;
+    onEditCliente: (cliente: Cliente) => void;
 }
 
 type Tab = 'confirmacoes' | 'aniversarios' | 'resgate';
 
-const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, receitas, appColor }) => {
+const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, receitas, appColor, onEditCliente }) => {
     const [activeTab, setActiveTab] = useState<Tab>('confirmacoes');
 
     // --- Helpers ---
@@ -38,8 +39,8 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
             .map(a => {
                 const cliente = clientes.find(c => c.nome === a.cliente);
                 const hora = new Date(a.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const msg = `Olá ${a.cliente.split(' ')[0]}! Tudo bem? Passando para confirmar seu horário de ${a.servico} amanhã às ${hora}. Podemos confirmar? 🥰`;
-                return { ...a, clienteTel: cliente?.telefone, msg, hora };
+                const msg = `Olá ${a.cliente.split(' ')[0]}! ✨ Passando para confirmar seu horário de ${a.servico} amanhã às ${hora}. Estamos preparando tudo com muito carinho para você! Podemos confirmar sua presença? 🥰`;
+                return { ...a, clienteObj: cliente, clienteTel: cliente?.telefone, msg, hora };
             });
     }, [agendamentos, clientes]);
 
@@ -51,7 +52,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
             const [, mes] = c.aniversario.split('/');
             return parseInt(mes) === mesAtual;
         }).map(c => {
-            const msg = `Parabéns ${c.nome.split(' ')[0]}! 🎂 Esse mês é todo seu! Que tal vir cuidar de você e aproveitar um mimo especial de aniversário? Agende seu horário! ✨`;
+            const msg = `Parabéns, ${c.nome.split(' ')[0]}! 🥳🎂 Hoje o dia é todo seu! Que tal vir comemorar ficando ainda mais maravilhosa? Preparamos um presente especial para você! Vamos agendar? ✨`;
             return { ...c, msg };
         });
     }, [clientes]);
@@ -76,12 +77,12 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
             const ultimaInteracao = ultimaDataReceita || ultimaDataAgendamento;
 
-            // Se nunca veio, não é resgate (é lead novo, mas vamos focar em retenção)
+            // Se nunca veio, não é resgate
             if (!ultimaInteracao) return false;
 
             return ultimaInteracao < trintaDiasAtras;
         }).map(c => {
-            const msg = `Oi ${c.nome.split(' ')[0]}, sumida! 🙈 Estamos com saudades de você aqui! Vamos agendar algo para essa semana? Tenho um horário ótimo pra você. 😘`;
+            const msg = `Oi ${c.nome.split(' ')[0]}, tudo bem? Sumiu! 🙈 Notei que faz um tempinho que você não vem nos visitar e estamos com saudades. Preparei uma condição especial para sua volta... o que acha? 😘`;
             return { ...c, msg };
         });
     }, [clientes, receitas, agendamentos]);
@@ -148,13 +149,19 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                             ) : (
                                 confirmacoes.map(item => (
                                     <div key={item.id} className="p-4 border border-slate-100 rounded-xl hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">{item.hora}</span>
-                                                <h3 className="font-extrabold text-slate-700 uppercase">{item.cliente}</h3>
+                                                <span className="bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-black uppercase whitespace-nowrap">{item.hora}</span>
+                                                <h3
+                                                    onClick={() => item.clienteObj && onEditCliente(item.clienteObj)}
+                                                    className="font-extrabold text-slate-700 uppercase truncate hover:underline cursor-pointer decoration-2 decoration-indigo-300"
+                                                >
+                                                    {item.cliente}
+                                                </h3>
                                             </div>
-                                            <p className="text-xs text-slate-400 font-medium">{item.servico}</p>
+                                            <p className="text-xs text-slate-400 font-medium truncate">{item.servico}</p>
                                         </div>
+
 
                                         {item.clienteTel ? (
                                             <a
@@ -193,14 +200,20 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                 aniversariantes.map(cliente => (
                                     <div key={cliente.id} className="p-4 border border-pink-100 bg-pink-50/30 rounded-xl flex flex-col gap-3">
                                         <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-extrabold text-slate-700 uppercase">{cliente.nome}</h3>
+                                            <div className="min-w-0">
+                                                <h3
+                                                    onClick={() => onEditCliente(cliente)}
+                                                    className="font-extrabold text-slate-700 uppercase truncate hover:underline cursor-pointer decoration-2 decoration-pink-300"
+                                                >
+                                                    {cliente.nome}
+                                                </h3>
                                                 <p className="text-xs text-pink-500 font-bold mt-1">Dia {cliente.aniversario}</p>
                                             </div>
-                                            <div className="w-8 h-8 bg-pink-100 text-pink-500 rounded-full flex items-center justify-center">
-                                                <Gift size={16} />
+                                            <div className="w-8 h-8 bg-pink-100 text-pink-50 rounded-full flex items-center justify-center shrink-0">
+                                                <Gift size={16} className="text-pink-500" />
                                             </div>
                                         </div>
+
 
                                         {cliente.telefone ? (
                                             <a
@@ -238,12 +251,18 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                             ) : (
                                 resgate.map(cliente => (
                                     <div key={cliente.id} className="p-4 border border-slate-100 rounded-xl hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                                        <div>
-                                            <h3 className="font-extrabold text-slate-700 uppercase">{cliente.nome}</h3>
+                                        <div className="min-w-0">
+                                            <h3
+                                                onClick={() => onEditCliente(cliente)}
+                                                className="font-extrabold text-slate-700 uppercase truncate hover:underline cursor-pointer decoration-2 decoration-amber-300"
+                                            >
+                                                {cliente.nome}
+                                            </h3>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
                                                 Total Gasto: R$ {cliente.totalGasto?.toFixed(2)}
                                             </p>
                                         </div>
+
 
                                         {cliente.telefone ? (
                                             <a
