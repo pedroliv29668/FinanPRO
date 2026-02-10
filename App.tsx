@@ -69,6 +69,7 @@ const App: React.FC = () => {
   const [modalClientes, setModalClientes] = useState(false);
   const [filtroClientes, setFiltroClientes] = useState('');
   const [clienteExternoParaEditar, setClienteExternoParaEditar] = useState<Cliente | null>(null);
+  const [hasLoadedData, setHasLoadedData] = useState(false);
 
   const [appName, setAppName] = useState(() => getSaved('appName', 'Gestão Clínica Estética'));
   const [appColor, setAppColor] = useState(() => getSaved('appColor', '#009b72'));
@@ -136,6 +137,11 @@ const App: React.FC = () => {
     observacoes: ''
   });
 
+  const [formNovoGastoFixo, setFormNovoGastoFixo] = useState({
+    nome: '',
+    valor: ''
+  });
+
   const formatMoeda = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   useEffect(() => {
@@ -152,30 +158,49 @@ const App: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       const loadData = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
 
-        const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário';
-        setUserName(name);
+          const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuário';
+          setUserName(name);
 
-        const { data } = await supabase.from('app_state').select('payload').eq('user_id', user.id).maybeSingle();
-        if (data && data.payload) {
-          const p = data.payload;
-          if (p.receitas) setReceitas(p.receitas);
-          if (p.despesasVariaveis) setDespesasVariaveis(p.despesasVariaveis);
-          if (p.sonhos) setSonhos(p.sonhos);
-          if (p.servicos) setServicos(p.servicos);
-          if (p.metas) setMetas(p.metas);
-          if (p.metas) setMetas(p.metas);
-          if (p.gastosFixos) setGastosFixos(p.gastosFixos);
-          if (p.appName) setAppName(p.appName);
-          if (p.appColor) setAppColor(p.appColor);
-          if (p.projecaoSelecionada !== undefined) setProjecaoSelecionada(p.projecaoSelecionada);
-          if (p.agendamentos) setAgendamentos(p.agendamentos);
-          if (p.clientes) setClientes(p.clientes);
+          const { data, error } = await supabase.from('app_state').select('payload').eq('user_id', user.id).maybeSingle();
+
+          if (error) {
+            console.error('Erro ao carregar dados do Supabase:', error);
+          }
+
+          if (data && data.payload) {
+            const p = data.payload;
+
+            // Batch updates to avoid multiple sync triggers if possible
+            // (React handles this mostly, but we set flag last)
+            if (p.receitas) setReceitas(p.receitas);
+            if (p.despesasVariaveis) setDespesasVariaveis(p.despesasVariaveis);
+            if (p.sonhos) setSonhos(p.sonhos);
+            if (p.servicos) setServicos(p.servicos);
+            if (p.metas) setMetas(p.metas);
+            if (p.gastosFixos) setGastosFixos(p.gastosFixos);
+            if (p.appName) setAppName(p.appName);
+            if (p.appColor) setAppColor(p.appColor);
+            if (p.projecaoSelecionada !== undefined) setProjecaoSelecionada(p.projecaoSelecionada);
+            if (p.agendamentos) setAgendamentos(p.agendamentos);
+            if (p.clientes) setClientes(p.clientes);
+          }
+
+          // CRITICAL: Set this flag only AFTER all data is loaded and set
+          setHasLoadedData(true);
+        } catch (err) {
+          console.error('Falha crítica no carregamento:', err);
+          // Permite uso local mesmo se falhar (opcional, mas seguro contra overwrite)
+          setHasLoadedData(true);
         }
       };
       loadData();
+    } else {
+      // Se deslogar, reseta a trava
+      setHasLoadedData(false);
     }
   }, [isAuthenticated]);
 
@@ -276,7 +301,7 @@ const App: React.FC = () => {
   }, [receitasMes, despesasMes, totalFixos, receitas, despesasVariaveis, totalVariaveis]);
 
   useEffect(() => {
-    const payload = { receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes };
+    // 1. Sempre salva no LocalStorage (mais rápido, sem rede)
     localStorage.setItem('receitas', JSON.stringify(receitas));
     localStorage.setItem('despesasVariaveis', JSON.stringify(despesasVariaveis));
     localStorage.setItem('sonhos', JSON.stringify(sonhos));
@@ -288,14 +313,24 @@ const App: React.FC = () => {
     localStorage.setItem('projecaoSelecionada', JSON.stringify(projecaoSelecionada));
     localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
     localStorage.setItem('clientes', JSON.stringify(clientes));
-    if (isAuthenticated) {
-      const sync = async () => {
+
+    // 2. Só sincroniza com Supabase se:
+    //    - Estiver autenticado
+    //    - TIVER TERMINADO O CARREGAMENTO INICIAL (hasLoadedData)
+    if (isAuthenticated && hasLoadedData) {
+      const syncWithSupabase = async () => {
+        const payload = { receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes };
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) await supabase.from('app_state').upsert({ user_id: user.id, payload }, { onConflict: 'user_id' });
+        if (user) {
+          console.log('Sync: Enviando dados para Supabase...');
+          await supabase.from('app_state').upsert({ user_id: user.id, payload }, { onConflict: 'user_id' });
+        }
       };
-      sync();
+
+      const timeoutId = setTimeout(syncWithSupabase, 1000); // Pequeno debounce
+      return () => clearTimeout(timeoutId);
     }
-  }, [receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes, isAuthenticated]);
+  }, [receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes, isAuthenticated, hasLoadedData]);
 
   const handleAddAgendamento = (ag: Omit<Agendamento, 'id'>) => {
     setAgendamentos(prev => [...prev, { ...ag, id: Date.now() }]);
@@ -458,6 +493,7 @@ const App: React.FC = () => {
             receitas={receitas}
             appColor={appColor}
             onEditCliente={(cliente) => {
+              console.log('App: Recebido cliente para editar do Marketing:', cliente);
               setClienteExternoParaEditar(cliente);
               setView('clientes');
             }}
@@ -1146,19 +1182,79 @@ const App: React.FC = () => {
           },
           {
             isOpen: modalFixos, setOpen: setModalFixos, title: 'Gastos Fixos', content: (
-              <div className="space-y-3 sm:space-y-4">
-                {gastosFixos.map((g, idx) => (
-                  <div key={g.id}>
-                    <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-400 ml-1 mb-2 block">{g.nome}</label>
-                    <input
-                      type="number"
-                      value={g.valor}
-                      onChange={e => setGastosFixos(prev => prev.map((item, i) => i === idx ? { ...item, valor: parseFloat(e.target.value) || 0 } : item))}
-                      className="w-full bg-slate-50 p-2.5 sm:p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm"
-                    />
+              <div className="space-y-6 sm:space-y-8">
+                <div className="space-y-4">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gastos Cadastrados</p>
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    {gastosFixos.map((g, idx) => (
+                      <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
+                          {!g.isPadrao && (
+                            <button
+                              onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
+                              className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+                        <input
+                          type="number"
+                          value={g.valor}
+                          onChange={e => setGastosFixos(prev => prev.map((item) => item.id === g.id ? { ...item, valor: parseFloat(e.target.value) || 0 } : item))}
+                          className="w-full bg-white p-2.5 rounded-lg font-bold border border-slate-200 outline-none text-sm"
+                        />
+                      </div>
+                    ))}
                   </div>
-                ))}
-                <button onClick={() => setModalFixos(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest mt-4 sm:mt-6" style={{ backgroundColor: appColor }}>Salvar Gastos</button>
+                </div>
+
+                <div className="pt-6 border-t border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-4">Adicionar Novo Gasto Fixo</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Nome do Gasto</label>
+                      <input
+                        type="text"
+                        value={formNovoGastoFixo.nome}
+                        onChange={e => setFormNovoGastoFixo({ ...formNovoGastoFixo, nome: e.target.value.toUpperCase() })}
+                        className="w-full bg-slate-50 p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase"
+                        placeholder="Ex: Aluguel"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Valor (R$)</label>
+                      <input
+                        type="number"
+                        value={formNovoGastoFixo.valor}
+                        onChange={e => setFormNovoGastoFixo({ ...formNovoGastoFixo, valor: e.target.value })}
+                        className="w-full bg-slate-50 p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm"
+                        placeholder="0,00"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!formNovoGastoFixo.nome) return;
+                      const novo: GastoFixo = {
+                        id: Date.now().toString(),
+                        nome: formNovoGastoFixo.nome,
+                        valor: parseFloat(formNovoGastoFixo.valor) || 0,
+                        isPadrao: false
+                      };
+                      setGastosFixos(prev => [...prev, novo]);
+                      setFormNovoGastoFixo({ nome: '', valor: '' });
+                    }}
+                    className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Plus size={14} /> Adicionar Gasto
+                  </button>
+                </div>
+
+                <div className="pt-4">
+                  <button onClick={() => setModalFixos(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg" style={{ backgroundColor: appColor }}>Fechar e Salvar</button>
+                </div>
               </div>
             )
           },

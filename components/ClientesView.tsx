@@ -152,7 +152,9 @@ const ClientesView: React.FC<ClientesViewProps> = ({
 
     // Efeito para tratar edição externa ( vindo do Marketing )
     React.useEffect(() => {
+        console.log('ClientesView: Verificando clienteExternoParaEditar:', clienteExternoParaEditar);
         if (clienteExternoParaEditar) {
+            console.log('ClientesView: Iniciando edição para:', clienteExternoParaEditar.nome);
             setClienteEditando(clienteExternoParaEditar);
             setFormCliente({
                 nome: clienteExternoParaEditar.nome,
