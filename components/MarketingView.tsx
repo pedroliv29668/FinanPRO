@@ -1,3 +1,4 @@
+import React, { useState, useMemo } from 'react';
 import {
     MessageCircle, Calendar, Gift, AlertCircle,
     CheckCircle2, Copy, ExternalLink, RefreshCw,

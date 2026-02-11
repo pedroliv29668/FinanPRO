@@ -335,8 +335,20 @@ const ClientesView: React.FC<ClientesViewProps> = ({
                                     </p>
                                 </div>
 
-                                {/* Arrow */}
-                                <ChevronRight className="text-slate-300" size={20} />
+                                {/* Ações Rápidas */}
+                                <div className="flex items-center gap-1 sm:gap-2">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditarCliente(cliente);
+                                        }}
+                                        className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-slate-100 rounded-lg transition-all"
+                                        title="Editar"
+                                    >
+                                        <Edit3 size={18} />
+                                    </button>
+                                    <ChevronRight className="text-slate-300" size={20} />
+                                </div>
                             </div>
                         </div>
                     ))}
