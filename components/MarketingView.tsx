@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
     MessageCircle, Calendar, Gift, AlertCircle,
     CheckCircle2, Copy, ExternalLink, RefreshCw,
-    Edit2, User, Phone, Sparkles, Wand2
+    Edit2, User, Phone, Sparkles, Wand2, Users
 } from 'lucide-react';
 import { Cliente, Agendamento, Receita } from '../types';
 import { generateMarketingCopy } from '../services/geminiService';
@@ -15,7 +15,7 @@ interface MarketingViewProps {
     onEditCliente: (cliente: Cliente) => void;
 }
 
-type Tab = 'confirmacoes' | 'aniversarios' | 'resgate';
+type Tab = 'confirmacoes' | 'aniversarios' | 'resgate' | 'venderMais';
 
 /**
  * MarketingView - Version 2.0 (Ultra Functional)
@@ -70,7 +70,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                 const firstFirstName = a.cliente ? a.cliente.split(' ')[0] : 'Cliente';
                 const msg = `Olá ${firstFirstName}! ✨ Passando para confirmar seu horário de ${a.servico || 'atendimento'} amanhã às ${hora}. Estamos preparando tudo com muito carinho para você! Podemos confirmar sua presença? 🥰`;
 
-                return { ...a, clienteObj: clientObj, clienteTel: clientObj?.telefone, msg, hora, lastService: lastServiceObj?.procedimento };
+                return { ...a, clienteObj: clientObj, clienteTel: clientObj?.telefone, msg, hora, lastService: lastServiceObj?.procedimento || a.servico };
             });
     }, [agendamentos, clientes, receitas]);
 
@@ -121,6 +121,17 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
         });
     }, [clientes, receitas, agendamentos]);
 
+    // --- Logic: Vender Mais (Todos os Clientes) ---
+    const venderMaisList = useMemo(() => {
+        if (!clientes) return [];
+        return clientes.map(c => {
+            const lastService = receitas ? receitas.filter(r => r && normalizeName(r.cliente || '') === normalizeName(c.nome)).pop()?.procedimento : undefined;
+            const firstFirstName = c.nome ? c.nome.split(' ')[0] : 'Cliente';
+            const msg = `Oi ${firstFirstName}! ✨ Notei que você adora cuidar da sua beleza conosco. Que tal aproveitar para conhecer nosso novo protocolo ou repetir aquele ${lastService || 'procedimento'} que você tanto gosta? Vamos agendar? 🥰`;
+            return { ...c, msg, lastService };
+        });
+    }, [clientes, receitas]);
+
     const handleGenerateCopy = async (id: string | number, type: 'personalized' | 'upsell', name: string, lastService?: string) => {
         setIsGenerating(id);
         try {
@@ -135,12 +146,12 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
         }
     };
 
-    const WhatsAppAction = ({ id, tel, msg, cliente, lastService }: { id: string | number, tel?: string, msg: string, cliente?: Cliente, lastService?: string }) => {
+    const WhatsAppAction = ({ id, tel, msg, cliente, lastService, clientName }: { id: string | number, tel?: string, msg: string, cliente?: Cliente, lastService?: string, clientName?: string }) => {
         const hasPhone = tel && tel.replace(/\D/g, '').length >= 10;
         const currentMsg = customMessages[id] || msg;
 
-        // Tenta encontrar o objeto cliente se ele não foi passado
-        const targetCliente = cliente || clientes.find(c => normalizeName(c.nome) === normalizeName(id.toString()));
+        // Tenta encontrar o objeto cliente
+        const targetCliente = cliente || clientes.find(c => normalizeName(c.nome) === normalizeName(clientName || id.toString()));
 
         return (
             <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -149,7 +160,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                     <textarea
                         value={currentMsg}
                         onChange={(e) => setCustomMessages(prev => ({ ...prev, [id]: e.target.value }))}
-                        className="w-full sm:w-[350px] p-4 pr-10 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-100 outline-none transition-all resize-none h-24 shadow-inner"
+                        className="w-full sm:w-[350px] p-4 pr-10 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-100 outline-none transition-all resize-none h-20 sm:h-24 shadow-inner"
                         placeholder="Edite sua mensagem aqui..."
                     />
                     <div className="absolute right-3 top-3 opacity-30 group-hover:opacity-100 transition-opacity">
@@ -160,7 +171,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                 {/* AI & Send Actions */}
                 <div className="flex flex-wrap items-center gap-2">
                     <button
-                        onClick={() => handleGenerateCopy(id, 'personalized', targetCliente?.nome || 'Cliente')}
+                        onClick={() => handleGenerateCopy(id, 'personalized', targetCliente?.nome || clientName || 'Cliente')}
                         disabled={isGenerating === id}
                         className="flex-1 sm:flex-none p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100 shadow-sm disabled:opacity-50"
                         title="Tornar Única (IA)"
@@ -169,15 +180,15 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                         <span className="text-[9px] font-black uppercase">Personalizar</span>
                     </button>
 
-                    {/* Vender + agora aparece sempre que tivermos o último serviço ou estivermos no resgate */}
-                    {(activeTab === 'resgate' || !!lastService) && (
+                    {/* Vender + agora aparece sempre que tivermos o último serviço ou estivermos no resgate ou aba Vender Mais */}
+                    {(activeTab === 'resgate' || activeTab === 'venderMais' || !!lastService) && (
                         <button
-                            onClick={() => handleGenerateCopy(id, 'upsell', targetCliente?.nome || 'Cliente', lastService)}
+                            onClick={() => handleGenerateCopy(id, 'upsell', targetCliente?.nome || clientName || 'Cliente', lastService)}
                             disabled={isGenerating === id}
                             className="flex-1 sm:flex-none p-2.5 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-all flex items-center justify-center gap-2 border border-amber-100 shadow-sm disabled:opacity-50"
                             title="Vender Mais (IA)"
                         >
-                            <Wand2 size={14} />
+                            {isGenerating === id ? <RefreshCw size={14} className="animate-spin" /> : <Wand2 size={14} />}
                             <span className="text-[9px] font-black uppercase">Vender +</span>
                         </button>
                     )}
@@ -188,8 +199,8 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                 if (targetCliente) {
                                     onEditCliente(targetCliente);
                                 } else {
-                                    // Se não encontrar o cliente, abre o cadastro com esse nome
-                                    onEditCliente({ id: 0, nome: id.toString() } as Cliente);
+                                    // Usa o nome real do cliente se não encontrar o objeto
+                                    onEditCliente({ id: 0, nome: clientName || id.toString() } as Cliente);
                                 }
                             }}
                             className="flex-1 sm:flex-none px-4 py-3 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm"
@@ -249,7 +260,14 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                     className={`flex-1 min-w-[120px] py-3.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'resgate' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
                 >
                     <RefreshCw size={18} className={activeTab === 'resgate' ? 'text-amber-500' : ''} />
-                    Resgatar Clientes ({resgate.length})
+                    Resgatar ({resgate.length})
+                </button>
+                <button
+                    onClick={() => setActiveTab('venderMais')}
+                    className={`flex-1 min-w-[120px] py-3.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'venderMais' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                    <Sparkles size={18} className={activeTab === 'venderMais' ? 'text-emerald-500' : ''} />
+                    Vender + ({venderMaisList.length})
                 </button>
             </div>
 
@@ -280,15 +298,13 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-2 flex-wrap">
                                                 <span className="bg-slate-800 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-md">{item.hora}</span>
-                                                <div
+                                                <button
                                                     onClick={() => {
-                                                        if (item.clienteObj) onEditCliente(item.clienteObj);
-                                                        else {
-                                                            const found = clientes.find(c => normalizeName(c.nome) === normalizeName(item.cliente));
-                                                            if (found) onEditCliente(found);
-                                                        }
+                                                        const target = item.clienteObj || clientes.find(c => normalizeName(c.nome) === normalizeName(item.cliente));
+                                                        if (target) onEditCliente(target);
+                                                        else onEditCliente({ id: 0, nome: item.cliente } as Cliente);
                                                     }}
-                                                    className="flex items-center gap-2 cursor-pointer group/name"
+                                                    className="flex items-center gap-2 cursor-pointer group/name text-left outline-none"
                                                 >
                                                     <h3 className="text-lg font-black text-slate-800 uppercase truncate group-hover/name:text-indigo-600 group-hover/name:underline decoration-4 decoration-indigo-200 transition-all font-outfit">
                                                         {item.cliente}
@@ -296,7 +312,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                                     <div className="p-1.5 bg-white rounded-lg shadow-sm border border-slate-100 opacity-50 group-hover/name:opacity-100 transition-opacity">
                                                         <Edit2 size={14} className="text-indigo-500" />
                                                     </div>
-                                                </div>
+                                                </button>
                                             </div>
                                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-2">
                                                 <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
@@ -305,7 +321,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
                                             {/* Message Area moved to WhatsAppAction */}
                                         </div>
-                                        <WhatsAppAction id={item.id} tel={item.clienteTel} msg={item.msg} cliente={item.clienteObj} lastService={item.lastService} />
+                                        <WhatsAppAction id={item.id} tel={item.clienteTel} msg={item.msg} cliente={item.clienteObj} lastService={item.lastService} clientName={item.cliente} />
                                     </div>
                                 ))
                             )}
@@ -425,7 +441,64 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                         </div>
                     </div>
                 )}
+                {/* === VENDER MAIS (TODOS) === */}
+                {activeTab === 'venderMais' && (
+                    <div className="p-6 sm:p-8">
+                        <div className="mb-8 flex items-center gap-3 text-emerald-600 bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/50 shadow-sm">
+                            <Sparkles size={24} className="shrink-0" />
+                            <div>
+                                <p className="text-[11px] font-black uppercase tracking-wider">Aumento de LTV</p>
+                                <p className="text-xs font-bold text-slate-600">Ofereça novos serviços para suas clientes ativas. <span className="text-emerald-600 font-black">Escala seu faturamento</span>!</p>
+                            </div>
+                        </div>
 
+                        <div className="grid gap-5">
+                            {venderMaisList.length === 0 ? (
+                                <div className="text-center py-24 text-slate-300">
+                                    <Users size={72} className="mx-auto mb-6 opacity-20" />
+                                    <p className="text-lg font-black uppercase tracking-tighter text-slate-400">Sem clientes cadastrados</p>
+                                </div>
+                            ) : (
+                                venderMaisList.map(cliente => (
+                                    <div key={cliente.id} className="p-6 border border-slate-100 rounded-3xl hover:border-emerald-200 hover:shadow-xl transition-all flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between bg-white relative group overflow-hidden">
+                                        <div className="absolute left-0 top-0 w-1.5 h-full bg-emerald-400 opacity-30"></div>
+                                        <div className="min-w-0 flex-1">
+                                            <div
+                                                onClick={() => onEditCliente(cliente)}
+                                                className="flex items-center gap-3 cursor-pointer group/name mb-2"
+                                            >
+                                                <h3 className="text-xl font-black text-slate-800 uppercase truncate group-hover/name:text-emerald-700 transition-all font-outfit">
+                                                    {cliente.nome}
+                                                </h3>
+                                                <div className="p-1.5 bg-slate-50 rounded-lg shadow-sm border border-slate-100 opacity-50 group-hover/name:opacity-100 transition-opacity">
+                                                    <Edit2 size={14} className="text-emerald-500" />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 mb-4">
+                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                                                    Último Serviço
+                                                </p>
+                                                <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-[10px] font-black shadow-sm">
+                                                    {cliente.lastService || 'Nenhum'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="shrink-0 w-full lg:w-auto">
+                                            <WhatsAppAction
+                                                id={cliente.id}
+                                                tel={cliente.telefone}
+                                                msg={cliente.msg}
+                                                cliente={cliente}
+                                                lastService={cliente.lastService}
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -71,10 +71,9 @@ const App: React.FC = () => {
   const [modalConfig, setModalConfig] = useState(false);
   const [modalClientes, setModalClientes] = useState(false);
   const [modalIA, setModalIA] = useState(false);
+  const [modalGlobalCliente, setModalGlobalCliente] = useState(false);
+  const [clienteParaEdicaoGlobal, setClienteParaEdicaoGlobal] = useState<Cliente | null>(null);
   const [aiResponse, setAiResponse] = useState('');
-  const [isAILoading, setIsAILoading] = useState(false);
-  const [filtroClientes, setFiltroClientes] = useState('');
-  const [clienteExternoParaEditar, setClienteExternoParaEditar] = useState<Cliente | null>(null);
   const [hasLoadedData, setHasLoadedData] = useState(false);
 
   const [appName, setAppName] = useState(() => getSaved('appName', 'Gestão Clínica Estética'));
@@ -533,9 +532,8 @@ const App: React.FC = () => {
             receitas={receitas}
             appColor={appColor}
             onEditCliente={(cliente) => {
-              console.log('App: Recebido cliente para editar do Marketing:', cliente);
-              setClienteExternoParaEditar(cliente);
-              setView('clientes');
+              setClienteParaEdicaoGlobal(cliente);
+              setModalGlobalCliente(true);
             }}
           />
         )}
@@ -1381,6 +1379,81 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+            )
+          },
+          {
+            isOpen: modalGlobalCliente, setOpen: setModalGlobalCliente, title: clienteParaEdicaoGlobal?.id === 0 ? 'Cadastrar Telefone' : 'Editar Cliente', content: (
+              <form
+                onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+                  e.preventDefault();
+                  const form = e.currentTarget;
+                  const updatedData = {
+                    nome: (form.elements.namedItem('nome') as HTMLInputElement).value,
+                    telefone: (form.elements.namedItem('telefone') as HTMLInputElement).value,
+                    email: (form.elements.namedItem('email') as HTMLInputElement).value,
+                    aniversario: (form.elements.namedItem('aniversario') as HTMLInputElement).value,
+                    observacoes: (form.elements.namedItem('observacoes') as HTMLTextAreaElement).value
+                  };
+
+                  if (clienteParaEdicaoGlobal?.id === 0) {
+                    const novo: Cliente = {
+                      ...updatedData,
+                      id: Date.now(),
+                      totalGasto: 0,
+                      totalAtendimentos: 0
+                    };
+                    setClientes(prev => [novo, ...prev]);
+                  } else if (clienteParaEdicaoGlobal) {
+                    setClientes(prev => prev.map(c => c.id === clienteParaEdicaoGlobal.id ? { ...c, ...updatedData } : c));
+                  }
+                  setModalGlobalCliente(false);
+                }}
+                className="space-y-4"
+              >
+                <div className="space-y-4">
+                  <input
+                    name="nome"
+                    defaultValue={clienteParaEdicaoGlobal?.nome || ''}
+                    placeholder="Nome Completo"
+                    required
+                    className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 outline-none font-bold text-sm"
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input
+                      name="telefone"
+                      defaultValue={clienteParaEdicaoGlobal?.telefone || ''}
+                      placeholder="WhatsApp (ex: 11999999999)"
+                      className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 outline-none font-bold text-sm"
+                    />
+                    <input
+                      name="aniversario"
+                      defaultValue={clienteParaEdicaoGlobal?.aniversario || ''}
+                      placeholder="Niver (DD/MM)"
+                      className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 outline-none font-bold text-sm"
+                    />
+                  </div>
+                  <input
+                    name="email"
+                    defaultValue={clienteParaEdicaoGlobal?.email || ''}
+                    placeholder="Email (opcional)"
+                    className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 outline-none font-bold text-sm"
+                  />
+                  <textarea
+                    name="observacoes"
+                    defaultValue={clienteParaEdicaoGlobal?.observacoes || ''}
+                    placeholder="Observações..."
+                    rows={3}
+                    className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 outline-none font-bold text-sm resize-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                  style={{ backgroundColor: appColor }}
+                >
+                  Salvar Dados
+                </button>
+              </form>
             )
           }
         ].map((modal, idx) => modal.isOpen && (
