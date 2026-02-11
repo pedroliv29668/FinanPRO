@@ -73,7 +73,9 @@ const App: React.FC = () => {
   const [modalIA, setModalIA] = useState(false);
   const [modalGlobalCliente, setModalGlobalCliente] = useState(false);
   const [clienteParaEdicaoGlobal, setClienteParaEdicaoGlobal] = useState<Cliente | null>(null);
+  const [clienteExternoParaEditar, setClienteExternoParaEditar] = useState<Cliente | null>(null);
   const [aiResponse, setAiResponse] = useState('');
+  const [isAILoading, setIsAILoading] = useState(false);
   const [hasLoadedData, setHasLoadedData] = useState(false);
 
   const [appName, setAppName] = useState(() => getSaved('appName', 'Gestão Clínica Estética'));
