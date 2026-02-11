@@ -1,11 +1,10 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
-// Always use const ai = new GoogleGenAI({apiKey: import.meta.env.VITE_GEMINI_API_KEY});
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 export const modifyJsonWithAI = async (currentJson: string, instruction: string): Promise<string> => {
-  const model = 'gemini-3-flash-preview';
+  const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const prompt = `Você é um especialista em manipulação de dados JSON. 
   O usuário forneceu o seguinte JSON:
@@ -19,26 +18,17 @@ export const modifyJsonWithAI = async (currentJson: string, instruction: string)
   Retorne APENAS o JSON resultante válido, mantendo a estrutura original onde possível, mas aplicando as mudanças solicitadas.`;
 
   try {
-    // Use ai.models.generateContent to query GenAI with both the model name and prompt.
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      },
-    });
-
-    // The GenerateContentResponse object features a text property (not a method, so do not call text())
-    // Ensure text is not undefined before calling trim()
-    return (response.text || "").trim();
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text().trim();
   } catch (error) {
     console.error("Erro ao processar JSON com Gemini:", error);
-    throw new Error("Falha ao processar sua solicitação de IA. Verifique se o JSON é válido.");
+    throw new Error("Falha ao processar sua solicitação de IA.");
   }
 };
 
 export const getAIInsight = async (dataSummary: any): Promise<string> => {
-  const model = 'gemini-1.5-flash'; // Using stable flash model
+  const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
   const prompt = `Você é um Consultor Estratégico Especialista em Clínicas de Estética e Gestão Financeira de Alto Nível.
   Analise os dados financeiros abaixo e forneça um relatório executivo de alta performance.
@@ -56,48 +46,56 @@ export const getAIInsight = async (dataSummary: any): Promise<string> => {
   Mantenha a resposta em Português do Brasil, formatada em Markdown elegante, e seja direto ao ponto.`;
 
   try {
-    const result = await ai.models.generateContent({
-      model,
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      config: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-      }
-    });
-
-    export const generateMarketingCopy = async (
-      type: 'personalized' | 'upsell',
-      clientName: string,
-      lastService?: string,
-      daysSinceLastVisit?: number
-    ) => {
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-      const prompt = type === 'personalized'
-        ? `Crie uma mensagem curta e carinhosa de WhatsApp para a cliente ${clientName}. 
-       O objetivo é fazer ela se sentir única e especial em minha clínica de estética. 
-       Use emojis, seja persuasiva mas gentil. Não use placeholders como [Nome]. 
-       Foque em autoestima e bem-estar.`
-        : `Crie uma mensagem de WhatsApp para a cliente ${clientName} que fez ${lastService || 'um procedimento'} recentemente (há ${daysSinceLastVisit || 30} dias). 
-       O objetivo é sugerir um procedimento complementar de forma elegante e persuasiva. 
-       Se ela fez Limpeza de Pele, sugira Hidratação ou Peeling. 
-       Se ela fez Botox, sugira Preenchimento ou Bioestimulador. 
-       Use emojis e foco em resultados duradouros. Não use placeholders.`;
-
-      try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        return response.text().trim();
-      } catch (error) {
-        console.error("Erro ao gerar copy de marketing:", error);
-        return "";
-      }
-    };
-
-    return result.response.text() || "Não foi possível gerar a análise no momento.";
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text() || "Não foi possível gerar a análise no momento.";
   } catch (error) {
     console.error("Erro ao gerar insight com Gemini:", error);
     return "Desculpe, tive um problema ao analisar seus dados. Verifique sua conexão ou chave de API.";
+  }
+};
+
+export const generateMarketingCopy = async (
+  type: 'personalized' | 'upsell',
+  clientName: string,
+  lastService?: string,
+  daysSinceLastVisit?: number
+) => {
+  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  const prompt = type === 'personalized'
+    ? `Você é uma Copywriter especialista em Clínicas de Estética de Luxo. 
+         Crie uma mensagem de WhatsApp para a cliente ${clientName} que a faça se sentir ÚNICA e EXCLUSIVA.
+         Diretrizes:
+         1. Use Gatilhos Mentais de Afeição e Antecipação.
+         2. Fale sobre o brilho no olhar, autoestima e o "tempo para si mesma".
+         3. Use emojis de forma elegante (✨, 💖, 🌸).
+         4. A linguagem deve ser próxima, como uma "consultora de beleza pessoal".
+         5. Máximo 3 parágrafos curtos. Sem placeholders.`
+    : `Você é uma especialista em Vendas e Neuro-Copywriting para Estética. 
+         Crie uma oferta irresistível para ${clientName}, que fez ${lastService || 'um procedimento'} há ${daysSinceLastVisit || 30} dias.
+         Objetivo: Upsell (Venda de serviço complementar).
+         
+         Lógica de Sugestão (Seja criativa):
+         - Se fez Limpeza de Pele -> Sugira Peeling de Diamante ou Skinbooster para "blindar" o resultado.
+         - Se fez Botox -> Sugira Bioestimulador para "sustentar" a juventude da pele.
+         - Se fez Corporal -> Sugira Drenagem ou Enzimas para "acelerar" a queima.
+         
+         Estrutura da Mensagem:
+         1. Gancho: Relembre o último procedimento e elogie o cuidado dela.
+         2. Problema Oculto: Mencione que sem o cuidado X, o resultado Y pode durar menos.
+         3. Solução (O Upsell): Apresente o novo serviço como o "par perfeito".
+         4. Escassez: Mencione que você reservou apenas 2 horários prioritários para "clientes vips" esta semana.
+         5. CTA: Peça uma resposta simples para reservar.
+         
+         Estilo: Persuasivo, elegante, focado em RESULTADO e TRANSFORMAÇÃO. Sem placeholders.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text().trim();
+  } catch (error) {
+    console.error("Erro ao gerar copy de marketing:", error);
+    return "";
   }
 };
