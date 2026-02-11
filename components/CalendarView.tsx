@@ -34,6 +34,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
         statusPagamento: 'Pendente' as 'Pago' | 'Pendente'
     });
     const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+    const [editingId, setEditingId] = useState<number | null>(null);
 
     // Generic navigation that handles both Week and Month modes
     const navigateDate = (direction: 'next' | 'prev') => {
@@ -118,18 +119,35 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
         const startDateTime = new Date(`${datePart}T${timePart}`);
         const endDateTime = new Date(startDateTime.getTime() + parseInt(newAgendamento.duracao) * 60000);
 
-        onAddAgendamento({
-            cliente: newAgendamento.cliente,
-            servico: newAgendamento.servico,
-            dataInicio: startDateTime.toISOString(),
-            dataFim: endDateTime.toISOString(),
-            valor: parseFloat(newAgendamento.valor) || 0,
-            formaPagamento: newAgendamento.formaPagamento as 'Pix' | 'Cartão' | 'Dinheiro' | undefined,
-            status: newAgendamento.status,
-            cor: newAgendamento.cor,
-            statusPagamento: newAgendamento.statusPagamento
-        });
+        if (editingId) {
+            onUpdateAgendamento({
+                id: editingId,
+                cliente: newAgendamento.cliente,
+                servico: newAgendamento.servico,
+                dataInicio: startDateTime.toISOString(),
+                dataFim: endDateTime.toISOString(),
+                valor: parseFloat(newAgendamento.valor) || 0,
+                formaPagamento: newAgendamento.formaPagamento as 'Pix' | 'Cartão' | 'Dinheiro' | undefined,
+                status: newAgendamento.status,
+                cor: newAgendamento.cor,
+                statusPagamento: newAgendamento.statusPagamento
+            });
+        } else {
+            onAddAgendamento({
+                cliente: newAgendamento.cliente,
+                servico: newAgendamento.servico,
+                dataInicio: startDateTime.toISOString(),
+                dataFim: endDateTime.toISOString(),
+                valor: parseFloat(newAgendamento.valor) || 0,
+                formaPagamento: newAgendamento.formaPagamento as 'Pix' | 'Cartão' | 'Dinheiro' | undefined,
+                status: newAgendamento.status,
+                cor: newAgendamento.cor,
+                statusPagamento: newAgendamento.statusPagamento
+            });
+        }
+
         setIsModalOpen(false);
+        setEditingId(null);
         setNewAgendamento({
             ...newAgendamento,
             cliente: '',
@@ -169,6 +187,31 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
         const currentIndex = statuses.indexOf(ag.status || 'Agendado');
         const nextIndex = (currentIndex + 1) % statuses.length;
         onUpdateAgendamento({ ...ag, status: statuses[nextIndex] });
+    };
+
+    const handleEdit = (ag: Agendamento) => {
+        const date = new Date(ag.dataInicio);
+        const dateStr = date.toISOString().split('T')[0];
+        const hourStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        const start = new Date(ag.dataInicio);
+        const end = new Date(ag.dataFim);
+        const duracao = Math.round((end.getTime() - start.getTime()) / 60000);
+
+        setEditingId(ag.id);
+        setNewAgendamento({
+            cliente: ag.cliente,
+            servico: ag.servico,
+            data: dateStr,
+            hora: hourStr,
+            valor: ag.valor?.toString() || '',
+            formaPagamento: ag.formaPagamento || '',
+            status: ag.status,
+            cor: ag.cor || '#6366f1',
+            duracao: duracao.toString(),
+            statusPagamento: ag.statusPagamento || 'Pendente'
+        });
+        setIsModalOpen(true);
     };
 
     const isToday = (date: Date) => {
@@ -338,7 +381,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                                             <div className="flex justify-between items-start">
                                                 <h3 className={`text-base sm:text-lg font-extrabold uppercase truncate ${isCanceled ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{ag.cliente}</h3>
                                                 <div className="flex gap-2">
-                                                    <button onClick={(e) => { e.stopPropagation(); onRemoveAgendamento(ag.id); }} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"><Trash size={16} /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEdit(ag); }} className="p-1.5 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-all" title="Editar"><Settings size={16} /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); onRemoveAgendamento(ag.id); }} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all" title="Excluir"><Trash size={16} /></button>
                                                 </div>
                                             </div>
                                             <p className="text-xs sm:text-sm font-bold text-slate-500 mt-1 flex items-center gap-2">
@@ -404,10 +448,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                         {/* Header */}
                         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 rounded-t-3xl">
                             <div>
-                                <h2 className="text-xl font-black text-slate-800 tracking-tight">Novo Agendamento</h2>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Preencha os detalhes abaixo</p>
+                                <h2 className="text-xl font-black text-slate-800 tracking-tight">{editingId ? 'Editar Agendamento' : 'Novo Agendamento'}</h2>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{editingId ? 'Atualize as informações desejadas' : 'Preencha os detalhes abaixo'}</p>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all shadow-sm">
+                            <button onClick={() => { setIsModalOpen(false); setEditingId(null); }} className="w-10 h-10 rounded-full bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-100 transition-all shadow-sm">
                                 <X size={20} />
                             </button>
                         </div>
@@ -568,7 +612,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ agendamentos = [], onAddAge
                         {/* Footer Actions */}
                         <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl">
                             <button type="submit" form="agendamento-form" className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-xs tracking-widest shadow-xl hover:bg-slate-800 hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center justify-center gap-3" style={{ backgroundColor: appColor }}>
-                                <CalendarIcon size={18} /> Confirmar Agendamento
+                                <CalendarIcon size={18} /> {editingId ? 'Salvar Alterações' : 'Confirmar Agendamento'}
                             </button>
                         </div>
 
