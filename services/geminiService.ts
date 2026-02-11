@@ -1,10 +1,9 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAI((import.meta as any).env.VITE_GEMINI_API_KEY || '');
 
 export const modifyJsonWithAI = async (currentJson: string, instruction: string): Promise<string> => {
-  const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `Você é um especialista em manipulação de dados JSON. 
   O usuário forneceu o seguinte JSON:
@@ -28,7 +27,7 @@ export const modifyJsonWithAI = async (currentJson: string, instruction: string)
 };
 
 export const getAIInsight = async (dataSummary: any): Promise<string> => {
-  const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `Você é um Consultor Estratégico Especialista em Clínicas de Estética e Gestão Financeira de Alto Nível.
   Analise os dados financeiros abaixo e forneça um relatório executivo de alta performance.
@@ -61,7 +60,7 @@ export const generateMarketingCopy = async (
   lastService?: string,
   daysSinceLastVisit?: number
 ) => {
-  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = type === 'personalized'
     ? `Você é uma Copywriter especialista em Clínicas de Estética de Luxo. 
