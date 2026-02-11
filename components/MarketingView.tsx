@@ -371,7 +371,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
                                         {/* Message moved to action area */}
                                         <div className="relative z-10 mt-auto">
-                                            <WhatsAppAction id={cliente.id} tel={cliente.telefone} msg={cliente.msg} cliente={cliente} lastService={receitas.filter(r => normalizeName(r.cliente || '') === normalizeName(cliente.nome)).pop()?.procedimento} />
+                                            <WhatsAppAction id={cliente.id} tel={cliente.telefone} msg={cliente.msg} cliente={cliente} lastService={receitas ? receitas.filter(r => r && normalizeName(r.cliente || '') === normalizeName(cliente.nome)).pop()?.procedimento : undefined} />
                                         </div>
                                     </div>
                                 ))
@@ -432,7 +432,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                                 tel={cliente.telefone}
                                                 msg={cliente.msg}
                                                 cliente={cliente}
-                                                lastService={receitas.filter(r => normalizeName(r.cliente || '') === normalizeName(cliente.nome)).pop()?.procedimento}
+                                                lastService={receitas ? receitas.filter(r => r && normalizeName(r.cliente || '') === normalizeName(cliente.nome)).pop()?.procedimento : undefined}
                                             />
                                         </div>
                                     </div>
