@@ -38,7 +38,8 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
     };
 
     // Normalize name for better matching (strips accents and extra spaces)
-    const normalizeName = (name: string) => {
+    const normalizeName = (name: any) => {
+        if (!name || typeof name !== 'string') return '';
         return name
             .toLowerCase()
             .normalize("NFD")
@@ -52,18 +53,22 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
         amanha.setDate(amanha.getDate() + 1);
         const amanhaStr = amanha.toISOString().split('T')[0];
 
+        if (!agendamentos) return [];
+
         return agendamentos
-            .filter(a => a.dataInicio.split('T')[0] === amanhaStr && a.status !== 'Cancelado')
+            .filter(a => a && a.dataInicio && typeof a.dataInicio === 'string' && a.dataInicio.split('T')[0] === amanhaStr && a.status !== 'Cancelado')
             .map(a => {
                 const normalizedAgendaName = normalizeName(a.cliente);
-                const clientObj = clientes.find(c => normalizeName(c.nome) === normalizedAgendaName);
+                const clientObj = clientes ? clientes.find(c => c && normalizeName(c.nome) === normalizedAgendaName) : undefined;
                 const lastServiceObj = receitas
-                    .filter(r => normalizeName(r.cliente || '') === normalizedAgendaName)
-                    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
+                    ? receitas
+                        .filter(r => r && normalizeName(r.cliente || '') === normalizedAgendaName)
+                        .sort((a, b) => (new Date(b.data).getTime() || 0) - (new Date(a.data).getTime() || 0))[0]
+                    : undefined;
 
-                const hora = new Date(a.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const firstFirstName = a.cliente.split(' ')[0];
-                const msg = `Olá ${firstFirstName}! ✨ Passando para confirmar seu horário de ${a.servico} amanhã às ${hora}. Estamos preparando tudo com muito carinho para você! Podemos confirmar sua presença? 🥰`;
+                const hora = a.dataInicio ? new Date(a.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const firstFirstName = a.cliente ? a.cliente.split(' ')[0] : 'Cliente';
+                const msg = `Olá ${firstFirstName}! ✨ Passando para confirmar seu horário de ${a.servico || 'atendimento'} amanhã às ${hora}. Estamos preparando tudo com muito carinho para você! Podemos confirmar sua presença? 🥰`;
 
                 return { ...a, clienteObj: clientObj, clienteTel: clientObj?.telefone, msg, hora, lastService: lastServiceObj?.procedimento };
             });
@@ -71,13 +76,16 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
     // --- Logic: Aniversariantes (Mês Atual) ---
     const aniversariantes = useMemo(() => {
+        if (!clientes) return [];
         const mesAtual = new Date().getMonth() + 1;
         return clientes.filter(c => {
-            if (!c.aniversario) return false;
-            const [, mes] = c.aniversario.split('/');
+            if (!c || !c.aniversario) return false;
+            const parts = c.aniversario.split('/');
+            if (parts.length < 2) return false;
+            const [, mes] = parts;
             return parseInt(mes) === mesAtual;
         }).map(c => {
-            const firstFirstName = c.nome.split(' ')[0];
+            const firstFirstName = c.nome ? c.nome.split(' ')[0] : 'Cliente';
             const msg = `Parabéns, ${firstFirstName}! 🥳🎂 Hoje o dia é todo seu! Que tal vir comemorar ficando ainda mais maravilhosa? Preparamos um presente especial para você! Vamos agendar? ✨`;
             return { ...c, msg };
         });
@@ -85,25 +93,29 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
     // --- Logic: Resgate (Sumidos > 30 dias) ---
     const resgate = useMemo(() => {
+        if (!clientes) return [];
         const trintaDiasAtras = new Date();
         trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
 
         return clientes.filter(c => {
-            const ultimasReceitas = receitas.filter(r => normalizeName(r.cliente || '') === normalizeName(c.nome));
+            if (!c || !c.nome) return false;
+            const clientNameNormalized = normalizeName(c.nome);
+
+            const ultimasReceitas = receitas ? receitas.filter(r => r && normalizeName(r.cliente || '') === clientNameNormalized) : [];
             const ultimaDataReceita = ultimasReceitas.length > 0
                 ? new Date(Math.max(...ultimasReceitas.map(r => new Date(r.data).getTime())))
                 : null;
 
-            const ultimosAgendamentos = agendamentos.filter(a => normalizeName(a.cliente) === normalizeName(c.nome) && a.status === 'Atendido');
+            const ultimosAgendamentos = agendamentos ? agendamentos.filter(a => a && a.cliente && normalizeName(a.cliente) === clientNameNormalized && a.status === 'Atendido') : [];
             const ultimaDataAgendamento = ultimosAgendamentos.length > 0
                 ? new Date(Math.max(...ultimosAgendamentos.map(a => new Date(a.dataInicio).getTime())))
                 : null;
 
             const ultimaInteracao = ultimaDataReceita || ultimaDataAgendamento;
-            if (!ultimaInteracao) return false;
+            if (!ultimaInteracao || isNaN(ultimaInteracao.getTime())) return false;
             return ultimaInteracao < trintaDiasAtras;
         }).map(c => {
-            const firstFirstName = c.nome.split(' ')[0];
+            const firstFirstName = c.nome ? c.nome.split(' ')[0] : 'Cliente';
             const msg = `Oi ${firstFirstName}, tudo bem? Sumiu! 🙈 Notei que faz um tempinho que você não vem nos visitar e estamos com saudades. Preparei uma condição especial para sua volta... o que acha? 😘`;
             return { ...c, msg };
         });
