@@ -56,15 +56,13 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
             .filter(a => a.dataInicio.split('T')[0] === amanhaStr && a.status !== 'Cancelado')
             .map(a => {
                 const normalizedAgendaName = normalizeName(a.cliente);
-                const clientObj = clientes.find(c => normalizeName(c.nome) === normalizedAgendaName);
+                const lastServiceObj = receitas
+                    .filter(r => normalizeName(r.cliente || '') === normalizedAgendaName)
+                    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
 
-                const hora = new Date(a.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const firstFirstName = a.cliente.split(' ')[0];
-                const msg = `Olá ${firstFirstName}! ✨ Passando para confirmar seu horário de ${a.servico} amanhã às ${hora}. Estamos preparando tudo com muito carinho para você! Podemos confirmar sua presença? 🥰`;
-
-                return { ...a, clienteObj: clientObj, clienteTel: clientObj?.telefone, msg, hora };
+                return { ...a, clienteObj: clientObj, clienteTel: clientObj?.telefone, msg, hora, lastService: lastServiceObj?.procedimento };
             });
-    }, [agendamentos, clientes]);
+    }, [agendamentos, clientes, receitas]);
 
     // --- Logic: Aniversariantes (Mês Atual) ---
     const aniversariantes = useMemo(() => {
@@ -108,16 +106,24 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
     const handleGenerateCopy = async (id: string | number, type: 'personalized' | 'upsell', name: string, lastService?: string) => {
         setIsGenerating(id);
-        const copy = await generateMarketingCopy(type, name, lastService);
-        if (copy) {
-            setCustomMessages(prev => ({ ...prev, [id]: copy }));
+        try {
+            const copy = await generateMarketingCopy(type, name, lastService);
+            if (copy) {
+                setCustomMessages(prev => ({ ...prev, [id]: copy }));
+            }
+        } catch (error) {
+            console.error("Erro ao gerar copy:", error);
+        } finally {
+            setIsGenerating(null);
         }
-        setIsGenerating(null);
     };
 
     const WhatsAppAction = ({ id, tel, msg, cliente, lastService }: { id: string | number, tel?: string, msg: string, cliente?: Cliente, lastService?: string }) => {
         const hasPhone = tel && tel.replace(/\D/g, '').length >= 10;
         const currentMsg = customMessages[id] || msg;
+
+        // Tenta encontrar o objeto cliente se ele não foi passado
+        const targetCliente = cliente || clientes.find(c => normalizeName(c.nome) === normalizeName(id.toString()));
 
         return (
             <div className="flex flex-col gap-3 w-full sm:w-auto">
@@ -137,7 +143,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                 {/* AI & Send Actions */}
                 <div className="flex flex-wrap items-center gap-2">
                     <button
-                        onClick={() => handleGenerateCopy(id, 'personalized', cliente?.nome || 'Cliente')}
+                        onClick={() => handleGenerateCopy(id, 'personalized', targetCliente?.nome || 'Cliente')}
                         disabled={isGenerating === id}
                         className="flex-1 sm:flex-none p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100 shadow-sm disabled:opacity-50"
                         title="Tornar Única (IA)"
@@ -146,9 +152,10 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                         <span className="text-[9px] font-black uppercase">Personalizar</span>
                     </button>
 
-                    {activeTab === 'resgate' && (
+                    {/* Vender + agora aparece sempre que tivermos o último serviço ou estivermos no resgate */}
+                    {(activeTab === 'resgate' || !!lastService) && (
                         <button
-                            onClick={() => handleGenerateCopy(id, 'upsell', cliente?.nome || 'Cliente', lastService)}
+                            onClick={() => handleGenerateCopy(id, 'upsell', targetCliente?.nome || 'Cliente', lastService)}
                             disabled={isGenerating === id}
                             className="flex-1 sm:flex-none p-2.5 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-all flex items-center justify-center gap-2 border border-amber-100 shadow-sm disabled:opacity-50"
                             title="Vender Mais (IA)"
@@ -161,13 +168,11 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                     {!hasPhone ? (
                         <button
                             onClick={() => {
-                                if (cliente) onEditCliente(cliente);
-                                else {
-                                    // Fallback: search by name if client object wasn't passed properly
-                                    const searchName = normalizeName(id.toString());
-                                    const found = clientes.find(c => normalizeName(c.nome) === searchName);
-                                    if (found) onEditCliente(found);
-                                    else alert("Por favor, localize o cliente na lista de clientes para editar.");
+                                if (targetCliente) {
+                                    onEditCliente(targetCliente);
+                                } else {
+                                    // Se não encontrar o cliente, abre o cadastro com esse nome
+                                    onEditCliente({ id: 0, nome: id.toString() } as Cliente);
                                 }
                             }}
                             className="flex-1 sm:flex-none px-4 py-3 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm"
@@ -283,7 +288,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
                                             {/* Message Area moved to WhatsAppAction */}
                                         </div>
-                                        <WhatsAppAction id={item.id} tel={item.clienteTel} msg={item.msg} cliente={item.clienteObj} />
+                                        <WhatsAppAction id={item.id} tel={item.clienteTel} msg={item.msg} cliente={item.clienteObj} lastService={item.lastService} />
                                     </div>
                                 ))
                             )}
@@ -333,7 +338,7 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
 
                                         {/* Message moved to action area */}
                                         <div className="relative z-10 mt-auto">
-                                            <WhatsAppAction id={cliente.id} tel={cliente.telefone} msg={cliente.msg} cliente={cliente} />
+                                            <WhatsAppAction id={cliente.id} tel={cliente.telefone} msg={cliente.msg} cliente={cliente} lastService={receitas.filter(r => normalizeName(r.cliente || '') === normalizeName(cliente.nome)).pop()?.procedimento} />
                                         </div>
                                     </div>
                                 ))
