@@ -66,6 +66,35 @@ export const getAIInsight = async (dataSummary: any): Promise<string> => {
       }
     });
 
+    export const generateMarketingCopy = async (
+      type: 'personalized' | 'upsell',
+      clientName: string,
+      lastService?: string,
+      daysSinceLastVisit?: number
+    ) => {
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+      const prompt = type === 'personalized'
+        ? `Crie uma mensagem curta e carinhosa de WhatsApp para a cliente ${clientName}. 
+       O objetivo é fazer ela se sentir única e especial em minha clínica de estética. 
+       Use emojis, seja persuasiva mas gentil. Não use placeholders como [Nome]. 
+       Foque em autoestima e bem-estar.`
+        : `Crie uma mensagem de WhatsApp para a cliente ${clientName} que fez ${lastService || 'um procedimento'} recentemente (há ${daysSinceLastVisit || 30} dias). 
+       O objetivo é sugerir um procedimento complementar de forma elegante e persuasiva. 
+       Se ela fez Limpeza de Pele, sugira Hidratação ou Peeling. 
+       Se ela fez Botox, sugira Preenchimento ou Bioestimulador. 
+       Use emojis e foco em resultados duradouros. Não use placeholders.`;
+
+      try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text().trim();
+      } catch (error) {
+        console.error("Erro ao gerar copy de marketing:", error);
+        return "";
+      }
+    };
+
     return result.response.text() || "Não foi possível gerar a análise no momento.";
   } catch (error) {
     console.error("Erro ao gerar insight com Gemini:", error);

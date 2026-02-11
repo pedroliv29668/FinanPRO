@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
 import {
     MessageCircle, Calendar, Gift, AlertCircle,
     CheckCircle2, Copy, ExternalLink, RefreshCw,
-    Edit2, User, Phone
+    Edit2, User, Phone, Sparkles, Wand2
 } from 'lucide-react';
 import { Cliente, Agendamento, Receita } from '../types';
+import { generateMarketingCopy } from '../services/geminiService';
 
 interface MarketingViewProps {
     clientes: Cliente[];
@@ -22,6 +22,9 @@ type Tab = 'confirmacoes' | 'aniversarios' | 'resgate';
  */
 const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, receitas, appColor, onEditCliente }) => {
     const [activeTab, setActiveTab] = useState<Tab>('confirmacoes');
+    const [editingMsgId, setEditingMsgId] = useState<string | number | null>(null);
+    const [customMessages, setCustomMessages] = useState<Record<string, string>>({});
+    const [isGenerating, setIsGenerating] = useState<string | number | null>(null);
 
     // --- Helpers ---
     const formatTelefone = (tel: string) => {
@@ -102,48 +105,85 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
         });
     }, [clientes, receitas, agendamentos]);
 
-    const WhatsAppAction = ({ tel, msg, cliente }: { tel?: string, msg: string, cliente?: Cliente }) => {
-        const hasPhone = tel && tel.replace(/\D/g, '').length >= 10;
-
-        if (hasPhone) {
-            return (
-                <div className="flex items-center gap-2">
-                    <a
-                        href={getLinkWhatsApp(tel!, msg)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 bg-emerald-100 text-emerald-600 rounded-full hover:bg-emerald-200 transition-colors shadow-sm active:scale-90"
-                        title="Enviar WhatsApp"
-                    >
-                        <MessageCircle size={20} />
-                    </a>
-                    <a
-                        href={getLinkWhatsApp(tel!, msg)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hidden sm:flex px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase items-center justify-center gap-2 transition-all shadow-md active:scale-95"
-                    >
-                        Enviar WhatsApp
-                    </a>
-                </div>
-            );
+    const handleGenerateCopy = async (id: string | number, type: 'personalized' | 'upsell', name: string, lastService?: string) => {
+        setIsGenerating(id);
+        const copy = await generateMarketingCopy(type, name, lastService);
+        if (copy) {
+            setCustomMessages(prev => ({ ...prev, [id]: copy }));
         }
+        setIsGenerating(null);
+    };
+
+    const WhatsAppAction = ({ id, tel, msg, cliente, lastService }: { id: string | number, tel?: string, msg: string, cliente?: Cliente, lastService?: string }) => {
+        const hasPhone = tel && tel.replace(/\D/g, '').length >= 10;
+        const currentMsg = customMessages[id] || msg;
 
         return (
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => cliente && onEditCliente(cliente)}
-                    className="p-2.5 bg-slate-100 text-slate-400 rounded-full hover:bg-slate-200 transition-colors shadow-sm"
-                    title="Adicionar Telefone"
-                >
-                    <Phone size={20} />
-                </button>
-                <button
-                    onClick={() => cliente && onEditCliente(cliente)}
-                    className="flex-1 sm:flex-none px-4 py-3 bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 border border-transparent rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all active:scale-95"
-                >
-                    Sem Telefone (Cadastrar)
-                </button>
+            <div className="flex flex-col gap-3 w-full sm:w-auto">
+                {/* Editable Message Area */}
+                <div className="relative group">
+                    <textarea
+                        value={currentMsg}
+                        onChange={(e) => setCustomMessages(prev => ({ ...prev, [id]: e.target.value }))}
+                        className="w-full sm:w-[350px] p-4 pr-10 text-[11px] font-medium text-slate-600 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-100 outline-none transition-all resize-none h-24 shadow-inner"
+                        placeholder="Edite sua mensagem aqui..."
+                    />
+                    <div className="absolute right-3 top-3 opacity-30 group-hover:opacity-100 transition-opacity">
+                        <Edit2 size={12} className="text-slate-400" />
+                    </div>
+                </div>
+
+                {/* AI & Send Actions */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        onClick={() => handleGenerateCopy(id, 'personalized', cliente?.nome || 'Cliente')}
+                        disabled={isGenerating === id}
+                        className="flex-1 sm:flex-none p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100 shadow-sm disabled:opacity-50"
+                        title="Tornar Única (IA)"
+                    >
+                        {isGenerating === id ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                        <span className="text-[9px] font-black uppercase">Personalizar</span>
+                    </button>
+
+                    {activeTab === 'resgate' && (
+                        <button
+                            onClick={() => handleGenerateCopy(id, 'upsell', cliente?.nome || 'Cliente', lastService)}
+                            disabled={isGenerating === id}
+                            className="flex-1 sm:flex-none p-2.5 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-all flex items-center justify-center gap-2 border border-amber-100 shadow-sm disabled:opacity-50"
+                            title="Vender Mais (IA)"
+                        >
+                            <Wand2 size={14} />
+                            <span className="text-[9px] font-black uppercase">Vender +</span>
+                        </button>
+                    )}
+
+                    {!hasPhone ? (
+                        <button
+                            onClick={() => {
+                                if (cliente) onEditCliente(cliente);
+                                else {
+                                    // Fallback: search by name if client object wasn't passed properly
+                                    const searchName = normalizeName(id.toString());
+                                    const found = clientes.find(c => normalizeName(c.nome) === searchName);
+                                    if (found) onEditCliente(found);
+                                    else alert("Por favor, localize o cliente na lista de clientes para editar.");
+                                }
+                            }}
+                            className="flex-1 sm:flex-none px-4 py-3 bg-rose-50 text-rose-500 hover:bg-rose-100 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-sm"
+                        >
+                            <Phone size={14} /> Cadastrar Tel.
+                        </button>
+                    ) : (
+                        <a
+                            href={getLinkWhatsApp(tel!, currentMsg)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 sm:flex-none px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+                        >
+                            <MessageCircle size={16} /> Enviar
+                        </a>
+                    )}
+                </div>
             </div>
         );
     };
@@ -218,7 +258,13 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                             <div className="flex items-center gap-3 mb-2 flex-wrap">
                                                 <span className="bg-slate-800 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-md">{item.hora}</span>
                                                 <div
-                                                    onClick={() => item.clienteObj && onEditCliente(item.clienteObj)}
+                                                    onClick={() => {
+                                                        if (item.clienteObj) onEditCliente(item.clienteObj);
+                                                        else {
+                                                            const found = clientes.find(c => normalizeName(c.nome) === normalizeName(item.cliente));
+                                                            if (found) onEditCliente(found);
+                                                        }
+                                                    }}
                                                     className="flex items-center gap-2 cursor-pointer group/name"
                                                 >
                                                     <h3 className="text-lg font-black text-slate-800 uppercase truncate group-hover/name:text-indigo-600 group-hover/name:underline decoration-4 decoration-indigo-200 transition-all font-outfit">
@@ -234,16 +280,9 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                                 {item.servico}
                                             </p>
 
-                                            {/* Message Box */}
-                                            <div className="mt-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-inner relative group-hover:border-indigo-100 transition-colors">
-                                                <div className="absolute -top-2 left-4 bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">Mensagem Sugerida</div>
-                                                <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic">
-                                                    "{item.msg}"
-                                                </p>
-                                            </div>
+                                            {/* Message Area moved to WhatsAppAction */}
                                         </div>
-
-                                        <WhatsAppAction tel={item.clienteTel} msg={item.msg} cliente={item.clienteObj} />
+                                        <WhatsAppAction id={item.id} tel={item.clienteTel} msg={item.msg} cliente={item.clienteObj} />
                                     </div>
                                 ))
                             )}
@@ -291,14 +330,9 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                             </div>
                                         </div>
 
-                                        <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-pink-100 shadow-sm relative z-10">
-                                            <p className="text-[11px] text-pink-900/60 font-medium leading-relaxed italic">
-                                                "{cliente.msg}"
-                                            </p>
-                                        </div>
-
+                                        {/* Message moved to action area */}
                                         <div className="relative z-10 mt-auto">
-                                            <WhatsAppAction tel={cliente.telefone} msg={cliente.msg} cliente={cliente} />
+                                            <WhatsAppAction id={cliente.id} tel={cliente.telefone} msg={cliente.msg} cliente={cliente} />
                                         </div>
                                     </div>
                                 ))
@@ -351,15 +385,16 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                                                 </span>
                                             </div>
 
-                                            <div className="bg-amber-50/30 p-4 rounded-2xl border border-amber-100/50">
-                                                <p className="text-[11px] text-amber-900/70 font-medium leading-relaxed italic">
-                                                    "{cliente.msg}"
-                                                </p>
-                                            </div>
+                                            {/* Message moved to action area */}
                                         </div>
-
                                         <div className="shrink-0 w-full lg:w-auto">
-                                            <WhatsAppAction tel={cliente.telefone} msg={cliente.msg} cliente={cliente} />
+                                            <WhatsAppAction
+                                                id={cliente.id}
+                                                tel={cliente.telefone}
+                                                msg={cliente.msg}
+                                                cliente={cliente}
+                                                lastService={receitas.filter(r => normalizeName(r.cliente || '') === normalizeName(cliente.nome)).pop()?.procedimento}
+                                            />
                                         </div>
                                     </div>
                                 ))
