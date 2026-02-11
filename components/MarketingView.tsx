@@ -56,9 +56,14 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
             .filter(a => a.dataInicio.split('T')[0] === amanhaStr && a.status !== 'Cancelado')
             .map(a => {
                 const normalizedAgendaName = normalizeName(a.cliente);
+                const clientObj = clientes.find(c => normalizeName(c.nome) === normalizedAgendaName);
                 const lastServiceObj = receitas
                     .filter(r => normalizeName(r.cliente || '') === normalizedAgendaName)
                     .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
+
+                const hora = new Date(a.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const firstFirstName = a.cliente.split(' ')[0];
+                const msg = `Olá ${firstFirstName}! ✨ Passando para confirmar seu horário de ${a.servico} amanhã às ${hora}. Estamos preparando tudo com muito carinho para você! Podemos confirmar sua presença? 🥰`;
 
                 return { ...a, clienteObj: clientObj, clienteTel: clientObj?.telefone, msg, hora, lastService: lastServiceObj?.procedimento };
             });
