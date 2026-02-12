@@ -1,0 +1,374 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+    Activity, Sparkles, ShieldCheck, CheckCircle2,
+    TrendingUp, BarChart2, Clock, CreditCard, Users,
+    Star, PiggyBank, FileText, Zap, X, Check,
+    HelpCircle, MessageCircle
+} from 'lucide-react';
+
+const LandingPage: React.FC = () => {
+    const navigate = useNavigate();
+    const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+    const appColor = '#b76e79';
+
+    return (
+        <div className="min-h-screen bg-white text-[#1a365d] font-inter overflow-x-hidden selection:bg-emerald-100 pb-20 md:pb-0">
+            {/* HEADER SECTION 1 */}
+            <header className="fixed top-0 left-0 right-0 z-[200] bg-white/95 backdrop-blur-md border-b border-slate-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 md:py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <Activity className="text-[#1a365d]" size={24} />
+                        <span className="text-lg md:text-xl font-black tracking-tighter uppercase">FINANPRO</span>
+                    </div>
+                    <nav className="hidden md:flex items-center gap-8">
+                        <a href="#solucao" className="text-[10px] font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Solução</a>
+                        <a href="#planos" className="text-[10px] font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Preços</a>
+                        <a href="#faq" className="text-[10px] font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">FAQ</a>
+                    </nav>
+                    <button onClick={() => navigate('/login')} className="px-5 py-2 border-2 border-[#1a365d] rounded-full text-[9px] font-black uppercase tracking-widest text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all">Entrar</button>
+                </div>
+            </header>
+
+            {/* SECTION 1: HERO - OPTIMIZED FOR ABOVE THE FOLD */}
+            <section className="pt-20 md:pt-24 pb-8 md:pb-12 px-4 sm:px-6 relative overflow-hidden min-h-[80vh] flex items-center">
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-[#1a365d]/5 -skew-x-12 -z-10 transform origin-top-right"></div>
+                <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6 md:gap-12 items-center w-full">
+                    <div className="space-y-3 md:space-y-5 text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-[#059669] text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-1 animate-fadeIn">
+                            <Sparkles size={12} /> Gestão para Negócios de Beleza
+                        </div>
+                        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tighter animate-fadeIn">
+                            Descubra Quanto Você Realmente Lucra no Seu Salão <span className="text-[#b76e79] block sm:inline">(E Pare de Trabalhar de Graça)</span>
+                        </h1>
+                        <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-xs md:text-base font-medium leading-relaxed animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                            Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
+                        </p>
+                        <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                            <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+                                QUERO COMEÇAR TESTE GRÁTIS
+                            </button>
+                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                                <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <ShieldCheck size={16} className="text-emerald-500" /> Sem cartão
+                                </div>
+                                <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <CheckCircle2 size={16} className="text-emerald-500" /> 7 dias grátis
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="relative group animate-fadeIn hidden lg:block" style={{ animationDelay: '0.3s' }}>
+                        <div className="bg-white p-3 rounded-[1.5rem] shadow-2xl border border-slate-100 transform rotate-2 group-hover:rotate-0 transition-all duration-700">
+                            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800" alt="App Dashboard" className="rounded-xl w-full h-auto object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" />
+                        </div>
+                        <div className="absolute -bottom-6 -left-12 glass p-4 rounded-2xl shadow-xl border border-white/50 flex items-center space-x-3 backdrop-blur-md bg-white/70 z-10">
+                            <div className="w-10 h-10 rounded-full bg-[#10b981] flex items-center justify-center text-white">
+                                <TrendingUp size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Seu Lucro esse Mês </p>
+                                <p className="text-lg font-extrabold text-[#1a365d]">2.500,00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 2: PROBLEMAS */}
+            <section className="py-20 bg-slate-50 px-4 sm:px-6">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-2xl sm:text-3xl font-black text-center uppercase tracking-tighter mb-12">Você se Identifica com Alguma Dessas Situações?</h2>
+                    <div className="grid gap-3">
+                        {[
+                            "Seu salão está sempre cheio, mas no fim do mês o lucro desaparece",
+                            "Você mistura dinheiro pessoal com dinheiro do negócio",
+                            "Perde horas toda semana tentando organizar planilhas",
+                            "Não sabe qual serviço te dá mais lucro de verdade",
+                            "Tem medo de crescer porque não tem controle financeiro"
+                        ].map((p, i) => (
+                            <div key={i} className="flex items-center gap-4 p-5 bg-white rounded-xl border border-slate-100 shadow-sm group hover:border-[#b76e79] transition-all">
+                                <div className="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 shrink-0">
+                                    <X size={14} />
+                                </div>
+                                <p className="text-xs sm:text-sm font-bold text-slate-700">{p}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 3: SOLUÇÃO */}
+            <section id="solucao" className="py-20 px-4 sm:px-6 bg-white">
+                <div className="max-w-7xl mx-auto text-center">
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-3 text-[#1a365d]">Apresentamos o FINANPRO</h2>
+                    <p className="text-base text-slate-400 font-medium mb-16 max-w-2xl mx-auto italic">"A amiga que entende de números para você não precisar se preocupar."</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[
+                            { icon: <BarChart2 size={32} className="text-[#1a365d]" />, title: 'Lucro real em tempo real', desc: 'Saiba exatamente quanto está sobrando sem matemática complicada.' },
+                            { icon: <Clock size={32} className="text-[#059669]" />, title: 'Economize 5+ horas', desc: 'Registre atendimentos em segundos. Relatórios prontos num clique.' },
+                            { icon: <TrendingUp size={32} className="text-[#b76e79]" />, title: 'Aumente seus lucros', desc: 'Descubra serviços lucrativos e otimize seus custos agora.' }
+                        ].map((b, i) => (
+                            <div key={i} className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-all group">
+                                <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-all">{b.icon}</div>
+                                <h3 className="text-lg font-black uppercase mb-3">{b.title}</h3>
+                                <p className="text-slate-500 text-xs font-medium leading-relaxed">{b.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 5: COMO FUNCIONA */}
+            <section className="py-20 px-4 sm:px-6 bg-[#1a365d] text-white">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4">Tão Simples que Você Vai Usar Todos os Dias</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10 relative">
+                        <div className="hidden md:block absolute top-10 left-1/4 right-1/4 h-0.5 border-t-2 border-dashed border-white/20"></div>
+                        {[
+                            { n: '1', title: 'Conecte', desc: 'Adicione suas entradas e saídas de forma manual e simples.' },
+                            { n: '2', title: 'Acompanhe', desc: 'Veja dashboards claros com seu faturamento e lucro por período.' },
+                            { n: '3', title: 'Cresça', desc: 'Realize seus sonhos com o lucro que você agora sabe onde está.' }
+                        ].map((s, i) => (
+                            <div key={i} className="text-center space-y-4 relative z-10">
+                                <div className="w-16 h-16 bg-[#10b981] text-white text-2xl font-black rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-white/10">{s.n}</div>
+                                <h3 className="text-lg font-black uppercase">{s.title}</h3>
+                                <p className="text-slate-300 text-xs font-medium leading-relaxed">{s.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 6: FUNCIONALIDADES */}
+            <section className="py-20 px-4 sm:px-6 bg-white">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-center mb-16">Tudo em um Só Lugar</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                            { icon: <CreditCard size={20} />, title: 'Controle de Caixa Diário', desc: 'Saiba exatamente quanto entrou via Pix, Cartão ou Dinheiro hoje.' },
+                            { icon: <Users size={20} />, title: 'Clientes VIP', desc: 'Identifique suas clientes que mais faturam e crie estratégias.' },
+                            { icon: <Star size={20} />, title: 'Análise de Serviços', desc: 'Ranking automático dos procedimentos mais lucrativos.' },
+                            { icon: <PiggyBank size={20} />, title: 'Gestão de Sonhos', desc: 'Transforme seu lucro em objetivos reais com nosso rastreador.' },
+                            { icon: <FileText size={20} />, title: 'Relatórios Automáticos', desc: 'Extratos detalhados por mês para você nunca mais ter dúvidas.' },
+                            { icon: <Zap size={20} />, title: 'Insights Inteligentes', desc: 'Sugestões automáticas baseadas no seu faturamento para otimizar.' }
+                        ].map((f, i) => (
+                            <div key={i} className="p-7 bg-slate-50 rounded-2xl border border-slate-100 hover:border-[#1a365d] transition-all group">
+                                <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center text-[#1a365d] mb-5 group-hover:bg-[#1a365d] group-hover:text-white transition-all">{f.icon}</div>
+                                <h3 className="text-base font-black uppercase mb-3">{f.title}</h3>
+                                <p className="text-slate-500 text-[11px] font-medium leading-relaxed">{f.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 7: PROVA SOCIAL */}
+            <section className="py-20 px-4 sm:px-6 bg-slate-50">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-center mb-16">Donas de Salão que já Transformaram seus Negócios</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[
+                            { name: 'Maria Silva', role: 'Espaço Beleza Pura (SP)', text: 'Antes do FINANPRO eu achava que estava lucrando, mas estava no vermelho. Em 2 meses organizei tudo e aumentei meu lucro!' },
+                            { name: 'Carla Oliveira', role: 'Clínica Estética Revitalize', text: 'Finalmente entendi para onde ia o meu dinheiro. O controle de gastos fixos me abriu os olhos. Hoje meu salão respira.' },
+                            { name: 'Juliana Costa', role: 'Studio J - Nails', text: 'Uso no meu celular entre atendimentos. É simples e não toma meu tempo. Recomendo para todas as manicures.' }
+                        ].map((d, i) => (
+                            <div key={i} className="p-8 bg-white rounded-2xl border border-slate-100 shadow-sm relative">
+                                <div className="flex gap-1 text-amber-500 mb-4"><Star size={14} /><Star size={14} /><Star size={14} /><Star size={14} /><Star size={14} /></div>
+                                <p className="italic text-slate-600 font-medium mb-8 leading-relaxed text-sm">"{d.text}"</p>
+                                <div className="flex items-center gap-3 border-t border-slate-50 pt-6">
+                                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden flex items-center justify-center text-white font-black text-sm" style={{ backgroundColor: appColor }}>{d.name[0]}</div>
+                                    <div>
+                                        <p className="font-black text-[#1a365d] uppercase text-[10px]">{d.name}</p>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{d.role}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 8: COMPARAÇÃO */}
+            <section className="py-20 px-4 sm:px-6 bg-white">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-2xl sm:text-4xl font-black text-[#1a365d] uppercase tracking-tighter text-center mb-12">FINANPRO vs Amadorismo</h2>
+                    <div className="bg-white rounded-[2rem] overflow-hidden border-2 border-slate-100 shadow-xl">
+                        <div className="grid grid-cols-2 text-center bg-[#1a365d] text-white">
+                            <div className="p-6 border-r border-white/10 text-[10px] font-black uppercase tracking-[0.2em]">SEM FINANPRO ❌</div>
+                            <div className="p-6 text-[10px] font-black uppercase tracking-[0.2em] bg-[#059669]">COM FINANPRO ✅</div>
+                        </div>
+                        {[
+                            ['Planilhas confusas', 'Dashboard visual e claro'],
+                            ['Horas perdidas', 'Automação inteligente'],
+                            ['Decisões no escuro', 'Dados em tempo real'],
+                            ['Dinheiro misturado', 'Finanças separadas'],
+                            ['Estresse constante', 'Paz e controle total']
+                        ].map((row, i) => (
+                            <div key={i} className="grid grid-cols-2 text-center border-b border-slate-50 last:border-0 group hover:bg-slate-50 transition-colors">
+                                <div className="p-5 border-r border-slate-50 text-slate-400 text-[11px] font-medium italic">{row[0]}</div>
+                                <div className="p-5 text-[#1a365d] text-[11px] font-black uppercase tracking-tight">{row[1]}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 9: GARANTIA */}
+            <section className="py-20 px-4 sm:px-6 bg-slate-50">
+                <div className="max-w-4xl mx-auto p-10 bg-white rounded-[2.5rem] border-4 border-[#10b981] shadow-xl relative overflow-hidden text-center">
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-[#1a365d]">🛡️ TESTE GRÁTIS POR 7 DIAS</h2>
+                    <p className="text-slate-500 font-medium text-sm md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
+                        Experimente TODAS as funcionalidades sem pagar nada agora. Sem cartão de crédito.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-6 text-emerald-600 font-black uppercase text-[10px] tracking-widest">
+                        <span className="flex items-center gap-2"><CheckCircle2 size={18} /> Sem contrato</span>
+                        <span className="flex items-center gap-2"><CheckCircle2 size={18} /> 100% Online</span>
+                        <span className="flex items-center gap-2"><CheckCircle2 size={18} /> Suporte VIP</span>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 10: PREÇOS (CARD INTELIGENTE) */}
+            <section id="planos" className="py-20 px-4 sm:px-6 bg-white">
+                <div className="max-w-7xl mx-auto text-center mb-8">
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-[#1a365d]">O Investimento que se Paga no Primeiro Mês</h2>
+
+                    {/* Toggle Seletor */}
+                    <div className="flex items-center justify-center gap-4 mb-8">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${billingCycle === 'monthly' ? 'text-[#1a365d]' : 'text-slate-400'}`}>Mensal</span>
+                        <button
+                            onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
+                            className="w-14 h-8 bg-[#1a365d] rounded-full p-1 relative transition-all duration-300"
+                        >
+                            <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 ${billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                        </button>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${billingCycle === 'yearly' ? 'text-[#1a365d]' : 'text-slate-400'}`}>Anual</span>
+                    </div>
+
+                    {/* Card Único Inteligente */}
+                    <div className="max-w-md mx-auto relative animate-fadeIn">
+                        {billingCycle === 'yearly' && (
+                            <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 px-6 py-2 bg-[#b76e79] text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg">
+                                74% DE ECONOMIA - Equivale a apenas R$ 12,40/mês!
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-[2rem] p-10 border-[3px] border-[#b76e79]/30 shadow-2xl relative overflow-hidden group hover:border-[#b76e79] transition-all duration-500">
+                            <h3 className="text-xl font-black uppercase text-[#1a365d] mb-1">Plano FINANPRO VIP</h3>
+                            <p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest mb-8">Acesso completo a todas as ferramentas</p>
+
+                            <div className="mb-8 flex flex-col items-center">
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-5xl font-black text-[#1a365d] transition-all duration-300">
+                                        {billingCycle === 'monthly' ? 'R$ 47' : 'R$ 149'}
+                                    </span>
+                                    <span className="text-slate-400 font-bold uppercase text-[10px]">
+                                        {billingCycle === 'monthly' ? '/mês' : '/ano'}
+                                    </span>
+                                </div>
+                                {billingCycle === 'yearly' && (
+                                    <p className="mt-1 text-[#059669] font-black text-[9px] uppercase tracking-widest">Apenas R$ 12,40 por mês no anual</p>
+                                )}
+                            </div>
+
+                            <ul className="space-y-3 mb-10 text-left">
+                                {[
+                                    'Acesso Completo',
+                                    'Suporte VIP via WhatsApp',
+                                    'IA Estratégica Ilimitada',
+                                    'Gerador de Copys de Vendas'
+                                ].map((item, ii) => (
+                                    <li key={ii} className="flex items-center gap-3 text-xs font-bold text-slate-600 uppercase tracking-tight">
+                                        <Check size={14} className="text-[#059669] shrink-0" />
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <button onClick={() => navigate('/login')} className="w-full py-5 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+                                COMEÇAR TESTE GRÁTIS AGORA
+                            </button>
+
+                            <p className="mt-4 text-[8px] font-bold text-slate-400 uppercase tracking-widest">🔒 Cancelamento instantâneo em 1 clique</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 11: FAQ */}
+            <section id="faq" className="py-20 px-4 sm:px-6 bg-slate-50">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-2xl sm:text-4xl font-black text-[#1a365d] uppercase tracking-tighter text-center mb-12">Dúvidas Frequentes</h2>
+                    <div className="space-y-4">
+                        {[
+                            ["É difícil de usar? Preciso entender de contabilidade?", "De jeito nenhum! O FINANPRO foi feito por quem vive a realidade do salão. É tudo visual e intuitivo."],
+                            ["Quanto tempo leva para configurar?", "Em menos de 2 minutos você já pode registrar sua primeira venda do dia."],
+                            ["Meus dados estão seguros?", "Sim. Usamos criptografia de ponta para garantir que suas finanças sejam um segredo só seu."],
+                            ["Funciona no celular?", "Com certeza! É um webapp 100% responsivo para você usar no celular ou computador."],
+                            ["Posso cancelar quando quiser?", "Sim, sem letras miúdas. Não temos fidelidade. Você paga o mês e usa."]
+                        ].map((faq, i) => (
+                            <div key={i} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm group hover:border-[#b76e79] transition-all">
+                                <h3 className="text-sm font-black uppercase text-[#1a365d] mb-3 flex items-center gap-3"><HelpCircle size={18} className="text-[#b76e79] shrink-0" /> {faq[0]}</h3>
+                                <p className="text-slate-500 text-xs font-medium leading-relaxed">{faq[1]}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 12: CTA FINAL */}
+            <section className="py-20 px-4 sm:px-6 bg-gradient-to-br from-[#1a365d] to-[#059669] text-white text-center">
+                <div className="max-w-4xl mx-auto space-y-8">
+                    <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter leading-tight">Está Pronta para Ter o Controle Total das Finanças?</h2>
+                    <button onClick={() => navigate('/login')} className="px-12 py-6 bg-white text-[#1a365d] rounded-xl font-black uppercase text-[10px] md:text-xs tracking-[0.2em] shadow-2xl hover:scale-110 active:scale-95 transition-all">
+                        COMEÇAR MEU TESTE GRÁTIS AGORA
+                    </button>
+                </div>
+            </section>
+
+            {/* RODAPÉ */}
+            <footer className="py-16 bg-white border-t border-slate-100 px-4 sm:px-6">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 text-center md:text-left">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-center md:justify-start gap-2">
+                            <Activity className="text-[#1a365d]" size={20} />
+                            <span className="text-base font-black tracking-tighter uppercase">FINANPRO</span>
+                        </div>
+                        <p className="text-slate-400 text-xs font-medium leading-relaxed">Empoderando empreendedoras da beleza através da inteligência financeira.</p>
+                    </div>
+                    <div>
+                        <h4 className="font-black text-[10px] uppercase text-[#1a365d] mb-5 tracking-widest underline decoration-[#b76e79] underline-offset-8">Políticas</h4>
+                        <ul className="space-y-2 text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                            <li><button className="hover:text-[#1a365d]">Termos</button></li>
+                            <li><button className="hover:text-[#1a365d]">Privacidade</button></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 className="font-black text-[10px] uppercase text-[#1a365d] mb-5 tracking-widest underline decoration-[#b76e79] underline-offset-8">Links</h4>
+                        <ul className="space-y-2 text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                            <li><button className="hover:text-[#1a365d]">Suporte</button></li>
+                            <li><button className="hover:text-[#1a365d]">Blog</button></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 className="font-black text-[10px] uppercase text-[#1a365d] mb-5 tracking-widest underline decoration-[#b76e79] underline-offset-8">Siga-nos</h4>
+                        <div className="flex justify-center md:justify-start gap-3">
+                            <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all"><Users size={14} /></button>
+                            <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all"><MessageCircle size={14} /></button>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            {/* STICKY FOOTER MOBILE */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-[250] bg-white/90 backdrop-blur-md border-t border-slate-100 p-4 animate-fadeIn">
+                <button onClick={() => navigate('/login')} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Teste Grátis por 7 Dias</button>
+            </div>
+        </div>
+    );
+};
+
+export default LandingPage;
