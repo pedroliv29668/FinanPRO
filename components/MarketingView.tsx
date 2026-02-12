@@ -240,34 +240,34 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
             </div>
 
             {/* Tabs */}
-            <div className="flex p-1 bg-slate-100 rounded-2xl overflow-x-auto shadow-inner border border-slate-200">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-slate-100 rounded-2xl shadow-inner border border-slate-200">
                 <button
                     onClick={() => setActiveTab('confirmacoes')}
-                    className={`flex-1 min-w-[120px] py-3.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'confirmacoes' ? 'bg-white shadow-md text-slate-800 border border-slate-200 translate-y-0' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`py-3 px-2 rounded-xl text-[10px] sm:text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${activeTab === 'confirmacoes' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
                 >
-                    <Calendar size={18} className={activeTab === 'confirmacoes' ? 'text-indigo-500' : ''} />
-                    Confirmar ({confirmacoes.length})
+                    <Calendar size={16} className={`sm:w-[18px] sm:h-[18px] shrink-0 ${activeTab === 'confirmacoes' ? 'text-indigo-500' : ''}`} />
+                    <span className="truncate">Confirmar <span className="text-[9px] opacity-70">({confirmacoes.length})</span></span>
                 </button>
                 <button
                     onClick={() => setActiveTab('aniversarios')}
-                    className={`flex-1 min-w-[120px] py-3.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'aniversarios' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`py-3 px-2 rounded-xl text-[10px] sm:text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${activeTab === 'aniversarios' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
                 >
-                    <Gift size={18} className={activeTab === 'aniversarios' ? 'text-pink-500' : ''} />
-                    Aniversariantes ({aniversariantes.length})
+                    <Gift size={16} className={`sm:w-[18px] sm:h-[18px] shrink-0 ${activeTab === 'aniversarios' ? 'text-pink-500' : ''}`} />
+                    <span className="truncate">Aniver. <span className="text-[9px] opacity-70">({aniversariantes.length})</span></span>
                 </button>
                 <button
                     onClick={() => setActiveTab('resgate')}
-                    className={`flex-1 min-w-[120px] py-3.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'resgate' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`py-3 px-2 rounded-xl text-[10px] sm:text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${activeTab === 'resgate' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
                 >
-                    <RefreshCw size={18} className={activeTab === 'resgate' ? 'text-amber-500' : ''} />
-                    Resgatar ({resgate.length})
+                    <RefreshCw size={16} className={`sm:w-[18px] sm:h-[18px] shrink-0 ${activeTab === 'resgate' ? 'text-amber-500' : ''}`} />
+                    <span className="truncate">Resgatar <span className="text-[9px] opacity-70">({resgate.length})</span></span>
                 </button>
                 <button
                     onClick={() => setActiveTab('venderMais')}
-                    className={`flex-1 min-w-[120px] py-3.5 rounded-xl text-xs font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'venderMais' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`py-3 px-2 rounded-xl text-[10px] sm:text-xs font-black uppercase transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${activeTab === 'venderMais' ? 'bg-white shadow-md text-slate-800 border border-slate-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
                 >
-                    <Sparkles size={18} className={activeTab === 'venderMais' ? 'text-emerald-500' : ''} />
-                    Vender + ({venderMaisList.length})
+                    <Sparkles size={16} className={`sm:w-[18px] sm:h-[18px] shrink-0 ${activeTab === 'venderMais' ? 'text-emerald-500' : ''}`} />
+                    <span className="truncate">Vender + <span className="text-[9px] opacity-70">({venderMaisList.length})</span></span>
                 </button>
             </div>
 
