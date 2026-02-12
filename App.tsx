@@ -60,9 +60,9 @@ const App: React.FC = () => {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
+  const isAdmin = userEmail === 'josecardio22@gmail.com';
   const [mesAtual, setMesAtual] = useState<number>(new Date().getMonth());
   const [anoAtual] = useState(new Date().getFullYear());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -158,10 +158,12 @@ const App: React.FC = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
+      setUserEmail(session?.user?.email || '');
       setIsLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
+      setUserEmail(session?.user?.email || '');
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -547,6 +549,7 @@ const App: React.FC = () => {
                       setClienteParaEdicaoGlobal(cliente);
                       setModalGlobalCliente(true);
                     }}
+                    isAdmin={isAdmin}
                   />
                 )
               }
@@ -582,13 +585,13 @@ const App: React.FC = () => {
                           </div>
 
                           <button
-                            onClick={handleGenerateInsight}
-                            className="order-1 sm:order-2 px-8 py-5 bg-white/10 text-white rounded-[2rem] font-black uppercase text-[11px] sm:text-xs tracking-widest shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all active:scale-95 flex items-center gap-3 border border-white/20 backdrop-blur-xl relative group overflow-hidden"
+                            onClick={() => isAdmin && handleGenerateInsight()}
+                            className={`order-1 sm:order-2 px-8 py-5 rounded-[2rem] font-black uppercase text-[11px] sm:text-xs tracking-widest shadow-[0_20px_50px_rgba(0,0,0,0.2)] transition-all active:scale-95 flex items-center gap-3 border backdrop-blur-xl relative group overflow-hidden ${isAdmin ? 'bg-white/10 text-white border-white/20 hover:shadow-[0_20px_50px_rgba(255,255,255,0.1)]' : 'bg-slate-900/40 text-slate-400 border-white/10 opacity-70 cursor-not-allowed'}`}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            {isAdmin && <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>}
                             <div className="relative flex items-center gap-3">
-                              <Sparkles size={20} className="animate-pulse" />
-                              <span className="relative z-10">Consultoria Estratégica</span>
+                              {isAdmin ? <Sparkles size={20} className="animate-pulse" /> : <Lock size={18} />}
+                              <span className="relative z-10">{isAdmin ? "Consultoria Estratégica" : "Consultoria (Em breve)"}</span>
                             </div>
                           </button>
                         </div>
@@ -1424,17 +1427,27 @@ const App: React.FC = () => {
                         <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart3 size={18} className="sm:size-[20px]" /> Analytics</button>
                         <button onClick={() => { setCurrentView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} className="sm:size-[20px]" /> Clientes</button>
                         <button onClick={() => { setCurrentView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} className="sm:size-[20px]" /> Marketing</button>
+
+                        {!isAdmin && (
+                          <div className="pt-2 px-2">
+                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 opacity-60">
+                              <Lock size={14} className="text-slate-400" />
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consultor IA (Em breve)</span>
+                            </div>
+                          </div>
+                        )}
+
                         <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} className="sm:size-[20px]" /> Estilo</button>
                         <div className="pt-4 mt-4 border-t border-slate-50 px-2">
                           <button
-                            onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
-                            className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(99,102,241,0.3)] group"
+                            onClick={() => { if (isAdmin) { handleGenerateInsight(); setIsSidebarOpen(false); } }}
+                            className={`w-full flex items-center justify-between gap-4 p-4 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] transition-all shadow-lg group ${isAdmin ? 'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white hover:scale-[1.02]' : 'bg-slate-100 text-slate-400 opacity-60 cursor-not-allowed'}`}
                           >
                             <div className="flex items-center gap-3">
-                              <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
-                              <span>Estratégia IA</span>
+                              {isAdmin ? <Sparkles size={18} className="group-hover:rotate-12 transition-transform" /> : <Lock size={16} />}
+                              <span>{isAdmin ? "Estratégia IA" : "Estratégia (Em breve)"}</span>
                             </div>
-                            <ChevronRight size={14} className="opacity-50" />
+                            {isAdmin && <ChevronRight size={14} className="opacity-50" />}
                           </button>
                         </div>
                         <div className="pt-6 sm:pt-10 border-t mt-6 sm:mt-10">

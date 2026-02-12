@@ -13,6 +13,7 @@ interface MarketingViewProps {
     receitas: Receita[];
     appColor: string;
     onEditCliente: (cliente: Cliente) => void;
+    isAdmin: boolean;
 }
 
 type Tab = 'confirmacoes' | 'aniversarios' | 'resgate' | 'venderMais';
@@ -21,7 +22,7 @@ type Tab = 'confirmacoes' | 'aniversarios' | 'resgate' | 'venderMais';
  * MarketingView - Version 2.0 (Ultra Functional)
  * Logic for automated WhatsApp messaging and CRM.
  */
-const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, receitas, appColor, onEditCliente }) => {
+const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, receitas, appColor, onEditCliente, isAdmin }) => {
     const [activeTab, setActiveTab] = useState<Tab>('confirmacoes');
     const [editingMsgId, setEditingMsgId] = useState<string | number | null>(null);
     const [customMessages, setCustomMessages] = useState<Record<string, string>>({});
@@ -173,23 +174,23 @@ const MarketingView: React.FC<MarketingViewProps> = ({ clientes, agendamentos, r
                     <button
                         onClick={() => handleGenerateCopy(id, 'personalized', targetCliente?.nome || clientName || 'Cliente')}
                         disabled={isGenerating === id}
-                        className="flex-1 sm:flex-none p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100 shadow-sm disabled:opacity-50"
-                        title="Tornar Única (IA)"
+                        className="flex-1 sm:flex-none p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all flex items-center justify-center gap-2 border border-indigo-100 shadow-sm disabled:opacity-50 relative overflow-hidden"
+                        title={isAdmin ? "Tornar Única (IA)" : "Em breve (Assinante VIP)"}
                     >
-                        {isGenerating === id ? <RefreshCw size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                        <span className="text-[9px] font-black uppercase">Personalizar</span>
+                        {isGenerating === id ? <RefreshCw size={14} className="animate-spin" /> : isAdmin ? <Sparkles size={14} /> : <Lock size={12} className="text-indigo-400" />}
+                        <span className="text-[9px] font-black uppercase text-center">{isAdmin ? "Personalizar" : "IA em breve"}</span>
                     </button>
 
                     {/* Vender + agora aparece sempre que tivermos o último serviço ou estivermos no resgate ou aba Vender Mais */}
                     {(activeTab === 'resgate' || activeTab === 'venderMais' || !!lastService) && (
                         <button
-                            onClick={() => handleGenerateCopy(id, 'upsell', targetCliente?.nome || clientName || 'Cliente', lastService)}
-                            disabled={isGenerating === id}
-                            className="flex-1 sm:flex-none p-2.5 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-all flex items-center justify-center gap-2 border border-amber-100 shadow-sm disabled:opacity-50"
-                            title="Vender Mais (IA)"
+                            onClick={() => isAdmin && handleGenerateCopy(id, 'upsell', targetCliente?.nome || clientName || 'Cliente', lastService)}
+                            disabled={isGenerating === id || !isAdmin}
+                            className={`flex-1 sm:flex-none p-2.5 rounded-xl transition-all flex items-center justify-center gap-2 border shadow-sm disabled:opacity-70 ${isAdmin ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
+                            title={isAdmin ? "Vender Mais (IA)" : "Em breve (Assinante VIP)"}
                         >
-                            {isGenerating === id ? <RefreshCw size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                            <span className="text-[9px] font-black uppercase">Vender +</span>
+                            {isGenerating === id ? <RefreshCw size={14} className="animate-spin" /> : isAdmin ? <Wand2 size={14} /> : <Lock size={12} />}
+                            <span className="text-[9px] font-black uppercase">{isAdmin ? "Vender +" : "IA em breve"}</span>
                         </button>
                     )}
 
