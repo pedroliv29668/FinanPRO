@@ -7,7 +7,19 @@ body {
   margin: 0;
   padding: 0;
   touch-action: pan-y;
-  /* Improves scroll behavior on mobile */
+  font-size: 16px;
+  /* Aumentado para melhor legibilidade base */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (min-width: 1024px) {
+
+  html,
+  body {
+    font-size: 18px;
+    /* Fonte ligeiramente maior em desktops */
+  }
 }
 
 #root {

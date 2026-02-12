@@ -22,11 +22,11 @@ const LandingPage: React.FC = () => {
                         <span className="text-lg md:text-xl font-black tracking-tighter uppercase">FINANPRO</span>
                     </div>
                     <nav className="hidden md:flex items-center gap-8">
-                        <a href="#solucao" className="text-[10px] font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Solução</a>
-                        <a href="#planos" className="text-[10px] font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Preços</a>
-                        <a href="#faq" className="text-[10px] font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">FAQ</a>
+                        <a href="#solucao" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Solução</a>
+                        <a href="#planos" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Preços</a>
+                        <a href="#faq" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">FAQ</a>
                     </nav>
-                    <button onClick={() => navigate('/login')} className="px-5 py-2 border-2 border-[#1a365d] rounded-full text-[9px] font-black uppercase tracking-widest text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all">Entrar</button>
+                    <button onClick={() => navigate('/login')} className="px-5 py-2 border-2 border-[#1a365d] rounded-full text-xs font-black uppercase tracking-widest text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all">Entrar</button>
                 </div>
             </header>
 
@@ -35,17 +35,17 @@ const LandingPage: React.FC = () => {
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-[#1a365d]/5 -skew-x-12 -z-10 transform origin-top-right"></div>
                 <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6 md:gap-12 items-center w-full">
                     <div className="space-y-3 md:space-y-5 text-center lg:text-left">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-[#059669] text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] mb-1 animate-fadeIn">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-[#059669] text-xs md:text-sm font-black uppercase tracking-[0.2em] mb-1 animate-fadeIn">
                             <Sparkles size={12} /> Gestão para Negócios de Beleza
                         </div>
                         <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tighter animate-fadeIn">
                             Descubra Quanto Você Realmente Lucra no Seu Salão <span className="text-[#b76e79] block sm:inline">(E Pare de Trabalhar de Graça)</span>
                         </h1>
-                        <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-xs md:text-base font-medium leading-relaxed animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                        <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-sm md:text-lg font-medium leading-relaxed animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                             Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
                         </p>
                         <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                            <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+                            <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
                                 QUERO COMEÇAR TESTE GRÁTIS
                             </button>
                             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
@@ -111,8 +111,8 @@ const LandingPage: React.FC = () => {
                         ].map((b, i) => (
                             <div key={i} className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-all group">
                                 <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-all">{b.icon}</div>
-                                <h3 className="text-lg font-black uppercase mb-3">{b.title}</h3>
-                                <p className="text-slate-500 text-xs font-medium leading-relaxed">{b.desc}</p>
+                                <h3 className="text-xl font-black uppercase mb-3">{b.title}</h3>
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed">{b.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -134,8 +134,8 @@ const LandingPage: React.FC = () => {
                         ].map((s, i) => (
                             <div key={i} className="text-center space-y-4 relative z-10">
                                 <div className="w-16 h-16 bg-[#10b981] text-white text-2xl font-black rounded-full flex items-center justify-center mx-auto shadow-xl ring-4 ring-white/10">{s.n}</div>
-                                <h3 className="text-lg font-black uppercase">{s.title}</h3>
-                                <p className="text-slate-300 text-xs font-medium leading-relaxed">{s.desc}</p>
+                                <h3 className="text-xl font-black uppercase">{s.title}</h3>
+                                <p className="text-slate-300 text-sm font-medium leading-relaxed">{s.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -157,8 +157,8 @@ const LandingPage: React.FC = () => {
                         ].map((f, i) => (
                             <div key={i} className="p-7 bg-slate-50 rounded-2xl border border-slate-100 hover:border-[#1a365d] transition-all group">
                                 <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center text-[#1a365d] mb-5 group-hover:bg-[#1a365d] group-hover:text-white transition-all">{f.icon}</div>
-                                <h3 className="text-base font-black uppercase mb-3">{f.title}</h3>
-                                <p className="text-slate-500 text-[11px] font-medium leading-relaxed">{f.desc}</p>
+                                <h3 className="text-lg font-black uppercase mb-3">{f.title}</h3>
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed">{f.desc}</p>
                             </div>
                         ))}
                     </div>
@@ -257,8 +257,8 @@ const LandingPage: React.FC = () => {
                         )}
 
                         <div className="bg-white rounded-[2rem] p-10 border-[3px] border-[#b76e79]/30 shadow-2xl relative overflow-hidden group hover:border-[#b76e79] transition-all duration-500">
-                            <h3 className="text-xl font-black uppercase text-[#1a365d] mb-1">Plano FINANPRO VIP</h3>
-                            <p className="text-slate-400 font-bold uppercase text-[9px] tracking-widest mb-8">Acesso completo a todas as ferramentas</p>
+                            <h3 className="text-2xl font-black uppercase text-[#1a365d] mb-1">Plano FINANPRO VIP</h3>
+                            <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mb-8">Acesso completo a todas as ferramentas</p>
 
                             <div className="mb-8 flex flex-col items-center">
                                 <div className="flex items-baseline gap-1">
@@ -281,7 +281,7 @@ const LandingPage: React.FC = () => {
                                     'IA Estratégica Ilimitada',
                                     'Gerador de Copys de Vendas'
                                 ].map((item, ii) => (
-                                    <li key={ii} className="flex items-center gap-3 text-xs font-bold text-slate-600 uppercase tracking-tight">
+                                    <li key={ii} className="flex items-center gap-3 text-sm font-bold text-slate-600 uppercase tracking-tight">
                                         <Check size={14} className="text-[#059669] shrink-0" />
                                         {item}
                                     </li>
@@ -311,8 +311,8 @@ const LandingPage: React.FC = () => {
                             ["Posso cancelar quando quiser?", "Sim, sem letras miúdas. Não temos fidelidade. Você paga o mês e usa."]
                         ].map((faq, i) => (
                             <div key={i} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm group hover:border-[#b76e79] transition-all">
-                                <h3 className="text-sm font-black uppercase text-[#1a365d] mb-3 flex items-center gap-3"><HelpCircle size={18} className="text-[#b76e79] shrink-0" /> {faq[0]}</h3>
-                                <p className="text-slate-500 text-xs font-medium leading-relaxed">{faq[1]}</p>
+                                <h3 className="text-base font-black uppercase text-[#1a365d] mb-3 flex items-center gap-3"><HelpCircle size={18} className="text-[#b76e79] shrink-0" /> {faq[0]}</h3>
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed">{faq[1]}</p>
                             </div>
                         ))}
                     </div>
