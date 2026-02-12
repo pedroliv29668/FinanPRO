@@ -492,7 +492,7 @@ const App: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<LandingPage isAuthenticated={isAuthenticated} userEmail={userEmail} />} />
       <Route path="/login" element={
         isAuthenticated ? <Navigate to="/app" replace /> : <AuthScreen appName={appName} appColor={appColor} />
       } />

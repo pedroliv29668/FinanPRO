@@ -7,9 +7,15 @@ import {
     HelpCircle, MessageCircle
 } from 'lucide-react';
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+    isAuthenticated: boolean;
+    userEmail: string;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail }) => {
     const navigate = useNavigate();
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+    const firstFirstName = userEmail ? userEmail.split('@')[0].split('.')[0].split('_')[0] : 'Usuária';
     const appColor = '#b76e79';
 
     return (
@@ -26,7 +32,12 @@ const LandingPage: React.FC = () => {
                         <a href="#planos" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Preços</a>
                         <a href="#faq" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">FAQ</a>
                     </nav>
-                    <button onClick={() => navigate('/login')} className="px-5 py-2 border-2 border-[#1a365d] rounded-full text-xs font-black uppercase tracking-widest text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all">Entrar</button>
+                    <button
+                        onClick={() => navigate(isAuthenticated ? '/app' : '/login')}
+                        className="px-5 py-2 border-2 border-[#1a365d] rounded-full text-xs font-black uppercase tracking-widest text-[#1a365d] hover:bg-[#1a365d] hover:text-white transition-all shadow-sm"
+                    >
+                        {isAuthenticated ? `Olá, ${firstFirstName} 👋` : 'Entrar'}
+                    </button>
                 </div>
             </header>
 
@@ -45,8 +56,14 @@ const LandingPage: React.FC = () => {
                             Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
                         </p>
                         <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                            <button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
-                                QUERO COMEÇAR TESTE GRÁTIS
+                            <button
+                                onClick={() => {
+                                    if (isAuthenticated) navigate('/app');
+                                    else document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                            >
+                                {isAuthenticated ? 'IR PARA O PAINEL' : 'QUERO COMEÇAR TESTE GRÁTIS'}
                             </button>
                             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                                 <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
