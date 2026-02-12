@@ -45,7 +45,7 @@ const LandingPage: React.FC = () => {
                             Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
                         </p>
                         <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                            <button onClick={() => navigate('/login')} className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+                            <button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })} className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
                                 QUERO COMEÇAR TESTE GRÁTIS
                             </button>
                             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
@@ -288,8 +288,8 @@ const LandingPage: React.FC = () => {
                                 ))}
                             </ul>
 
-                            <button onClick={() => navigate('/login')} className="w-full py-5 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
-                                COMEÇAR TESTE GRÁTIS AGORA
+                            <button onClick={() => window.open('https://lastlink.com/p/C969D3A79/checkout-payment/', '_blank')} className="w-full py-5 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+                                ASSINAR AGORA E COMEÇAR
                             </button>
 
                             <p className="mt-4 text-[8px] font-bold text-slate-400 uppercase tracking-widest">🔒 Cancelamento instantâneo em 1 clique</p>
@@ -323,8 +323,8 @@ const LandingPage: React.FC = () => {
             <section className="py-20 px-4 sm:px-6 bg-gradient-to-br from-[#1a365d] to-[#059669] text-white text-center">
                 <div className="max-w-4xl mx-auto space-y-8">
                     <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter leading-tight">Está Pronta para Ter o Controle Total das Finanças?</h2>
-                    <button onClick={() => navigate('/login')} className="px-12 py-6 bg-white text-[#1a365d] rounded-xl font-black uppercase text-[10px] md:text-xs tracking-[0.2em] shadow-2xl hover:scale-110 active:scale-95 transition-all">
-                        COMEÇAR MEU TESTE GRÁTIS AGORA
+                    <button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })} className="px-12 py-6 bg-white text-[#1a365d] rounded-xl font-black uppercase text-xs md:text-sm tracking-[0.2em] shadow-2xl hover:scale-110 active:scale-95 transition-all">
+                        VERIFICAR PLANOS E PREÇOS
                     </button>
                 </div>
             </section>
@@ -365,7 +365,7 @@ const LandingPage: React.FC = () => {
 
             {/* STICKY FOOTER MOBILE */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-[250] bg-white/90 backdrop-blur-md border-t border-slate-100 p-4 animate-fadeIn">
-                <button onClick={() => navigate('/login')} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Teste Grátis por 7 Dias</button>
+                <button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Ver Planos e Preços</button>
             </div>
         </div>
     );
