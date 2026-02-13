@@ -28,11 +28,19 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                 });
                 if (error) throw error;
             } else {
-                const { error } = await supabase.auth.signUp({
+                const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
                 });
                 if (error) throw error;
+
+                // Criar perfil inicial
+                if (data.user) {
+                    await supabase.from('profiles').insert([
+                        { id: data.user.id, email: data.user.email, subscription_status: 'pending' }
+                    ]);
+                }
+
                 alert('Cadastro realizado! Verifique seu e-mail para confirmar (se necessário) ou faça login.');
             }
         } catch (err: any) {
