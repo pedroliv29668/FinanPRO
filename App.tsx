@@ -498,8 +498,8 @@ const App: React.FC = () => {
             {subscriptionStatus !== 'active' && !isAdmin ? (
               <SubscriptionWall userEmail={userEmail} appColor={appColor} onLogout={handleLogout} />
             ) : (
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 lg:py-10">
-                <header className="flex justify-between items-center mb-6 sm:mb-8 bg-white/70 backdrop-blur-md sticky top-4 z-[100] px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl border border-white shadow-sm">
+              <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6 lg:py-10">
+                <header className="flex justify-between items-center mb-4 sm:mb-8 bg-white/70 backdrop-blur-md sticky top-2 sm:top-4 z-[100] px-3 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white shadow-sm transition-all">
                   <button onClick={() => setIsSidebarOpen(true)} className="p-2 sm:p-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-all active:scale-95"><Menu size={20} /></button>
                   <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: appColor }}></div>
@@ -697,8 +697,8 @@ const App: React.FC = () => {
                       </div>
                     )}
 
-                    <section className="rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-10 lg:p-20 text-white shadow-2xl relative overflow-hidden group" style={{ background: `linear-gradient(135deg, ${appColor}, ${appColor}EE)` }}>
-                      <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none"><Activity size={240} className="sm:size-[280px]" /></div>
+                    <section className="rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[3rem] p-5 sm:p-10 lg:p-20 text-white shadow-2xl relative overflow-hidden group transition-all" style={{ background: `linear-gradient(135deg, ${appColor}, ${appColor}EE)` }}>
+                      <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none"><Activity size={120} className="sm:size-[280px]" /></div>
                       <div className="relative z-10 text-center">
                         <p className="text-[10px] sm:text-xs lg:text-base font-bold uppercase tracking-[0.2em] sm:tracking-[0.3em] opacity-80 mb-3 sm:mb-4 animate-fadeIn">Bem-vinda(o), {userName}</p>
                         <h1 className="text-xl sm:text-3xl lg:text-5xl font-extrabold uppercase tracking-tighter mb-6 sm:mb-10 leading-tight">{appName}</h1>

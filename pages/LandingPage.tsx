@@ -50,7 +50,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                             <Sparkles size={12} /> Gestão para Negócios de Beleza
                         </div>
                         <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tighter animate-fadeIn">
-                            Descubra Quanto Você Realmente Lucra no Seu Salão <span className="text-[#b76e79] block sm:inline">(E Pare de Trabalhar de Graça)</span>
+                            Descubra Quanto Você Realmente Lucra <span className="text-[#b76e79] block sm:inline">no Seu Salão</span>
                         </h1>
                         <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-sm md:text-lg font-medium leading-relaxed animate-fadeIn" style={{ animationDelay: '0.1s' }}>
                             Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
