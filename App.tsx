@@ -973,37 +973,55 @@ const App: React.FC = () => {
                     Histórico Recente
                   </h2>
                   <div className="space-y-4">
-                    {[
-                      ...receitas.map(r => ({ ...r, tipo: 'receita' })),
-                      ...despesas.map(d => ({ ...d, tipo: 'despesa' }))
-                    ]
-                      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
-                      .slice(0, 10)
-                      .map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className={`p-2 rounded-lg ${item.tipo === 'receita' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                              {item.tipo === 'receita' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                    {(() => {
+                      try {
+                        const listaReceitas = Array.isArray(receitas) ? receitas : [];
+                        const listaDespesas = Array.isArray(despesas) ? despesas : [];
+                        const todas = [
+                          ...listaReceitas.map(r => ({ ...r, tipo: 'receita' })),
+                          ...listaDespesas.map(d => ({ ...d, tipo: 'despesa' }))
+                        ];
+
+                        if (todas.length === 0) {
+                          return (
+                            <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                              <p className="text-xs text-slate-400 font-bold uppercase">Nenhuma transação registrada ainda.</p>
                             </div>
-                            <div>
-                              <p className="text-xs font-bold text-slate-800 uppercase">
-                                {'cliente' in item ? item.cliente : item.descricao}
-                              </p>
-                              <p className="text-[10px] font-semibold text-slate-400">
-                                {new Date(item.data).toLocaleDateString('pt-BR')} • {item.tipo === 'receita' ? ('procedimento' in item ? item.procedimento : 'Entrada') : 'Saída'}
-                              </p>
+                          );
+                        }
+
+                        return todas
+                          .filter(item => item && item.data)
+                          .sort((a, b) => {
+                            const dataA = new Date(a.data).getTime() || 0;
+                            const dataB = new Date(b.data).getTime() || 0;
+                            return dataB - dataA;
+                          })
+                          .slice(0, 10)
+                          .map((item: any, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors">
+                              <div className="flex items-center gap-4">
+                                <div className={`p-2 rounded-lg ${item.tipo === 'receita' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                  {item.tipo === 'receita' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-slate-800 uppercase">
+                                    {(item.tipo === 'receita' ? item.cliente : item.descricao) || 'Sem descrição'}
+                                  </p>
+                                  <p className="text-[10px] font-semibold text-slate-400">
+                                    {new Date(item.data).toLocaleDateString('pt-BR')} • {item.tipo === 'receita' ? (item.procedimento || 'Entrada') : 'Saída'}
+                                  </p>
+                                </div>
+                              </div>
+                              <span className={`text-sm font-black ${item.tipo === 'receita' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {item.tipo === 'receita' ? '+' : '-'}{formatMoeda(item.valor || 0)}
+                              </span>
                             </div>
-                          </div>
-                          <span className={`text-sm font-black ${item.tipo === 'receita' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                            {item.tipo === 'receita' ? '+' : '-'}{formatMoeda(item.valor)}
-                          </span>
-                        </div>
-                      ))}
-                    {receitas.length === 0 && despesas.length === 0 && (
-                      <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        <p className="text-xs text-slate-400 font-bold uppercase">Nenhuma transação registrada ainda.</p>
-                      </div>
-                    )}
+                          ));
+                      } catch (error) {
+                        return <div className="text-xs text-rose-500 font-bold p-4">Erro ao carregar histórico</div>;
+                      }
+                    })()}
                   </div>
                 </section>
 
@@ -1365,7 +1383,7 @@ const App: React.FC = () => {
           </div>
         )}
       </div>
-    </ProtectedRoute>
+    </ProtectedRoute >
   );
 
   return (
