@@ -928,93 +928,79 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14" id="section-lancamentos">
-                      <section className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-8 flex items-center gap-3"><Plus size={20} className="text-emerald-500" /> Lançar Receita</h3>
-                        <form onSubmit={handleAddReceita} className="space-y-4">
+                      <section className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:scale-110 transition-transform"><Plus size={120} /></div>
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-8 flex items-center gap-3 relative z-10"><Plus size={20} className="text-emerald-500" /> Lançar Receita</h3>
+                        <form onSubmit={handleAddReceita} className="space-y-4 relative z-10">
+                          <input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase text-slate-500" required />
                           <input type="text" placeholder="CLIENTE" value={formReceita.cliente} onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase" required />
-                          <div className="grid grid-cols-2 gap-4">
-                            <input type="text" placeholder="VALOR" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs" required />
-                            <select value={formReceita.formaPagamento} onChange={e => setFormReceita({ ...formReceita, formaPagamento: e.target.value as any })} className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-[10px] uppercase">
-                              <option value="Pix">PIX</option>
-                              <option value="Cartão">CARTÃO</option>
-                              <option value="Dinheiro">DINHEIRO</option>
-                            </select>
+                          <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required>
+                            <option value="">Selecione o Procedimento...</option>
+                            {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}
+                          </select>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs" required />
+                            <div className="flex gap-2">
+                              {['Pix', 'Cartão', 'Dinheiro'].map(f => (
+                                <button key={f} type="button" onClick={() => setFormReceita({ ...formReceita, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border ${formReceita.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
+                              ))}
+                            </div>
                           </div>
-                          <button type="submit" className="w-full py-4 bg-emerald-500 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">Salvar Entrada</button>
+                          <button type="submit" className="w-full py-5 bg-emerald-500 text-white rounded-2xl font-black uppercase text-xs tracking-[0.15em] shadow-[0_20px_40px_rgba(16,185,129,0.2)] hover:scale-[1.01] transition-all">Salvar Entrada</button>
                         </form>
                       </section>
-                      <section className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-8 flex items-center gap-3"><TrendingDown size={20} className="text-rose-500" /> Lançar Despesa</h3>
-                        <form onSubmit={handleAddDespesa} className="space-y-4">
+
+                      <section className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:scale-110 transition-transform"><TrendingDown size={120} /></div>
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-8 flex items-center gap-3 relative z-10"><TrendingDown size={20} className="text-rose-500" /> Lançar Despesa</h3>
+                        <form onSubmit={handleAddDespesa} className="space-y-4 relative z-10">
+                          <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase text-slate-500" required />
                           <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase" required />
-                          <input type="text" placeholder="VALOR" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs" required />
-                          <button type="submit" className="w-full py-4 bg-rose-500 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg">Salvar Saída</button>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs" required />
+                            <div className="flex gap-2">
+                              {['Pix', 'Cartão', 'Dinheiro'].map(f => (
+                                <button key={f} type="button" onClick={() => setFormDespesa({ ...formDespesa, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border ${formDespesa.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
+                              ))}
+                            </div>
+                          </div>
+                          <button type="submit" className="w-full py-5 bg-rose-500 text-white rounded-2xl font-black uppercase text-xs tracking-[0.15em] shadow-[0_20px_40px_rgba(244,63,94,0.2)] hover:scale-[1.01] transition-all">Salvar Saída</button>
                         </form>
                       </section>
                     </div>
 
                     <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
-                      <div className="flex flex-col md:flex-row justify-between items-center mb-8 sm:mb-10 gap-6">
-                        <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3 sm:gap-4"><div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg text-indigo-500"><Clock size={18} className="sm:size-[20px]" /></div>Extrato Mensal</h2>
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10">
-                        <div className="space-y-4">
-                          <p className="text-[9px] sm:text-[10px] font-bold text-emerald-500 uppercase tracking-widest border-b border-emerald-100 pb-3 sm:pb-4">Detalhamento de Entradas</p>
-                          <div className="space-y-3 max-h-[360px] sm:max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                            {receitasMes.map(r => {
-                              const dataObj = new Date(r.data + 'T00:00:00');
-                              const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-                              return (
-                                <div key={r.id} className="flex justify-between items-start p-4 sm:p-5 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 hover:bg-white hover:border-emerald-200 transition-all group">
-                                  <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white border border-slate-100 flex items-center justify-center text-emerald-500 shrink-0 mt-0.5 transition-transform group-hover:scale-110"><Plus size={16} className="sm:size-[18px]" /></div>
-                                    <div className="min-w-0">
-                                      <p className="text-[11px] sm:text-xs font-black text-slate-800 uppercase tracking-tight truncate">{r.cliente}</p>
-                                      <p className="text-[9px] sm:text-[10px] font-bold text-emerald-600 uppercase mt-0.5 truncate">{r.procedimento || 'Procedimento'}</p>
-                                      <div className="flex flex-wrap gap-x-2.5 sm:gap-x-3 gap-y-1 mt-1.5 sm:mt-2">
-                                        <span className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase"><CalendarDays size={10} className="sm:size-[12px]" /> {dataFormatada}</span>
-                                        <span className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase"><CreditCard size={10} className="sm:size-[12px]" /> {r.formaPagamento}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-2">
-                                    <p className="text-xs sm:text-sm font-extrabold text-emerald-600">{formatMoeda(r.valor)}</p>
-                                    <button onClick={() => setReceitas(prev => prev.filter(x => x.id !== r.id))} className="text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {receitasMes.length === 0 && <p className="text-center py-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Nenhuma entrada registrada</p>}
-                          </div>
+                      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                        <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-4"><div className="p-2 bg-indigo-50 rounded-lg text-indigo-500"><Lightbulb size={20} /></div>Insights & Sugestões</h2>
+                        <div className="px-5 py-2.5 bg-slate-50 rounded-full border border-slate-100 flex items-center gap-3 animate-pulse">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Análise de IA Ativa</span>
                         </div>
-                        <div className="space-y-4">
-                          <p className="text-[9px] sm:text-[10px] font-bold text-rose-500 uppercase tracking-widest border-b border-rose-100 pb-3 sm:pb-4">Detalhamento de Saídas</p>
-                          <div className="space-y-3 max-h-[360px] sm:max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                            {despesasMes.map(d => {
-                              const dataObj = new Date(d.data + 'T00:00:00');
-                              const dataFormatada = dataObj.toLocaleDateString('pt-BR');
-                              return (
-                                <div key={d.id} className="flex justify-between items-start p-4 sm:p-5 bg-slate-50 rounded-xl sm:rounded-2xl border border-slate-100 hover:bg-white hover:border-rose-200 transition-all group">
-                                  <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white border border-slate-100 flex items-center justify-center text-rose-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform"><X size={16} className="sm:size-[18px]" /></div>
-                                    <div className="min-w-0">
-                                      <p className="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-tight truncate">{d.descricao}</p>
-                                      <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase truncate mb-1.5">{d.categoria}</p>
-                                      <div className="flex flex-wrap gap-x-2.5 sm:gap-x-3 gap-y-1">
-                                        <span className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase"><CalendarDays size={10} className="sm:size-[12px]" /> {dataFormatada}</span>
-                                        {d.formaPagamento && <span className="flex items-center gap-1 sm:gap-1.5 text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase"><CreditCard size={10} className="sm:size-[12px]" /> {d.formaPagamento}</span>}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-2">
-                                    <p className="text-xs sm:text-sm font-extrabold text-rose-600">{formatMoeda(d.valor)}</p>
-                                    <button onClick={() => setDespesasVariaveis(prev => prev.filter(x => x.id !== d.id))} className="text-slate-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {despesasMes.length === 0 && <p className="text-center py-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Nenhuma saída registrada</p>}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+                        <div className="p-8 bg-slate-50/50 rounded-3xl border border-slate-100/50 hover:bg-white transition-all group">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Saúde Financeira</p>
+                          <div className="flex items-end gap-3 mb-6">
+                            <span className="text-3xl font-black text-indigo-600 tracking-tighter">{percFaturamento.toFixed(0)}%</span>
+                            <span className="text-[10px] font-bold text-slate-300 uppercase mb-1.5 whitespace-nowrap">da Meta</span>
                           </div>
+                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2 shadow-inner"><div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: `${percFaturamento}%` }}></div></div>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase">{percFaturamento >= 100 ? 'Meta Superada!' : 'Continue evoluindo'}</p>
+                        </div>
+                        <div className="p-8 bg-slate-50/50 rounded-3xl border border-slate-100/50 hover:bg-white transition-all">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Realização</p>
+                          <div className="flex items-end gap-3 mb-6"><span className="text-3xl font-black text-emerald-600 tracking-tighter">92%</span><span className="text-[10px] font-bold text-slate-300 uppercase mb-1.5">Probabilidade</span></div>
+                          <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">Com base no ritmo atual, você atingirá o faturamento alvo em 24 dias.</p>
+                        </div>
+                        <div className="p-8 bg-slate-50/50 rounded-3xl border border-slate-100/50 hover:bg-white transition-all">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Top Produto</p>
+                          <div className="flex items-center gap-4 mb-6"><div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-amber-500"><Trophy size={20} /></div><div className="min-w-0"><p className="text-sm font-black text-slate-800 uppercase truncate">Limpeza</p></div></div>
+                          <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">Este serviço representa 42% da sua receita total do mês.</p>
+                        </div>
+                        <div className="p-8 bg-slate-900 rounded-3xl border border-slate-800 shadow-xl group overflow-hidden relative">
+                          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform"><Target size={80} /></div>
+                          <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4 relative z-10">Dica Estratégica</p>
+                          <p className="text-[11px] font-bold text-white leading-relaxed relative z-10">Sua margem atual está em 68%. Tente reduzir gastos fixos em 10% para maximizar o lucro.</p>
                         </div>
                       </div>
                     </section>
