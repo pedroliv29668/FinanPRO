@@ -75,7 +75,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                             </div>
                         </div>
                     </div>
-                    <div className="relative group animate-fadeIn hidden lg:block" style={{ animationDelay: '0.3s' }}>
+                    <div className="relative group animate-fadeIn mt-8 lg:mt-0" style={{ animationDelay: '0.3s' }}>
                         <div className="bg-white p-3 rounded-[1.5rem] shadow-2xl border border-slate-100 transform rotate-2 group-hover:rotate-0 transition-all duration-700">
                             <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800" alt="App Dashboard" className="rounded-xl w-full h-auto object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" />
                         </div>
