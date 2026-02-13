@@ -4,7 +4,7 @@ import {
     Activity, Sparkles, ShieldCheck, CircleCheck,
     TrendingUp, BarChart, Clock, CreditCard, Users,
     Star, PiggyBank, FileText, Zap, X, Check,
-    CircleHelp, MessageCircle
+    CircleHelp, MessageCircle, Target
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -115,6 +115,71 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
+            {/* SECTION: AGENDA INTELIGENTE (NOVO) */}
+            <section className="py-20 px-4 sm:px-6 bg-white overflow-hidden">
+                <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="order-2 lg:order-1 relative">
+                        <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl transform -translate-x-1/2"></div>
+                        <div className="relative bg-white border border-slate-100 rounded-3xl shadow-2xl p-6 sm:p-8 transform rotate-1 hover:rotate-0 transition-all duration-500">
+                            <div className="flex items-center justify-between mb-6 border-b border-slate-50 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">14</div>
+                                    <div>
+                                        <p className="text-xs font-black uppercase text-slate-400">Segunda-feira</p>
+                                        <p className="font-bold text-slate-800">Agenda do Dia</p>
+                                    </div>
+                                </div>
+                                <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase">3 Atendidos</span>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border-l-4 border-emerald-500">
+                                    <div className="flex-1">
+                                        <p className="font-black text-slate-700 text-xs uppercase">Ana Júlia</p>
+                                        <p className="text-[10px] text-slate-400 font-bold">Corte + Hidratação</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-black text-emerald-600 text-xs">R$ 180,00</p>
+                                        <p className="text-[9px] text-slate-400 font-bold uppercase">Pago via Pix</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 p-3 bg-white border border-slate-100 rounded-xl border-l-4 border-amber-500 shadow-sm opacity-60">
+                                    <div className="flex-1">
+                                        <p className="font-black text-slate-700 text-xs uppercase">Carla Dias</p>
+                                        <p className="text-[10px] text-slate-400 font-bold">Progressiva</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-slate-400 text-xs">R$ 250,00</p>
+                                        <p className="text-[9px] text-slate-300 font-bold uppercase">Agendado</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-slate-50 text-center">
+                                <p className="text-[10px] uppercase font-black tracking-widest text-indigo-500 animate-pulse">✨ Lançamento Automático no Financeiro</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="order-1 lg:order-2 text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-full text-indigo-600 text-xs font-black uppercase tracking-widest mb-4">
+                            <Clock size={14} /> Adeus, Caderninho
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1a365d] uppercase tracking-tighter mb-6">
+                            Você Agenda, o <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Dinheiro Entra</span>
+                        </h2>
+                        <p className="text-slate-500 text-lg font-medium leading-relaxed mb-8">
+                            Chega de esquecer de anotar ou perder horas somando o dia. No FINANPRO, cada agendamento já alimenta seu caixa automaticamente.
+                        </p>
+                        <ul className="space-y-4 mb-8 inline-block text-left">
+                            {['Lembretes Automáticos', 'Histórico da Cliente', 'Cálculo de Comissão'].map(item => (
+                                <li key={item} className="flex items-center gap-3 font-bold text-slate-700">
+                                    <div className="p-1 rounded-full bg-indigo-100 text-indigo-600"><Check size={12} /></div>
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
             {/* SECTION 3: SOLUÇÃO */}
             <section id="solucao" className="py-20 px-4 sm:px-6 bg-white">
                 <div className="max-w-7xl mx-auto text-center">
@@ -178,6 +243,57 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                                 <p className="text-slate-500 text-sm font-medium leading-relaxed">{f.desc}</p>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION: SONHOS E MARCA (NOVO) */}
+            <section className="py-20 px-4 sm:px-6 bg-slate-900 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-900/20 to-transparent"></div>
+                <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 item-center relative z-10">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-full text-emerald-400 text-xs font-black uppercase tracking-widest mb-4 border border-white/10">
+                            <Target size={14} /> Seu Próximo Nível
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mb-6">
+                            Transforme Lucro em <span className="text-emerald-400">Sonhos Realizados</span>
+                        </h2>
+                        <p className="text-slate-400 text-lg font-medium leading-relaxed mb-8">
+                            Não é só sobre pagar boletos. O FINANPRO tem uma tecnologia exclusiva de <strong>"Gestão de Sonhos"</strong> que te ajuda a reservar dinheiro para o que realmente importa: seu carro, sua reforma, sua viagem.
+                        </p>
+
+                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 backdrop-blur-sm mb-8">
+                            <div className="flex justify-between items-end mb-2">
+                                <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">Reforma do Salão</span>
+                                <span className="text-xl font-black">75%</span>
+                            </div>
+                            <div className="w-full h-3 bg-slate-700 rounded-full overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 w-3/4 shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                            </div>
+                            <p className="mt-3 text-[10px] text-slate-400 font-bold uppercase text-right">Faltam apenas R$ 2.500,00</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        <div className="p-8 bg-white text-[#1a365d] rounded-3xl shadow-xl transform lg:translate-x-12 border-4 border-slate-100">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-xl bg-rose-500 flex items-center justify-center text-white shadow-lg"><Sparkles size={24} /></div>
+                                <div>
+                                    <h3 className="font-black text-xl uppercase leading-none">Sua Marca, Seu Império</h3>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Personalização Total</p>
+                                </div>
+                            </div>
+                            <p className="text-slate-600 font-medium mb-6">
+                                O aplicativo fica com a <strong>cor da sua marca</strong> e o <strong>seu nome</strong>. Suas clientes e você vão sentir que o sistema foi feito sob medida para o seu sucesso.
+                            </p>
+                            <div className="flex gap-2">
+                                <div className="w-6 h-6 rounded-full bg-rose-500 border-2 border-white shadow-sm ring-2 ring-slate-100"></div>
+                                <div className="w-6 h-6 rounded-full bg-purple-500 border-2 border-white shadow-sm ring-2 ring-slate-100"></div>
+                                <div className="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white shadow-sm ring-2 ring-slate-100"></div>
+                                <div className="w-6 h-6 rounded-full bg-amber-500 border-2 border-white shadow-sm ring-2 ring-slate-100"></div>
+                                <span className="text-xs font-bold text-slate-400 flex items-center ml-2">+ infinitas cores</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
