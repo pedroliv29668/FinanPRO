@@ -42,7 +42,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
             </header>
 
             {/* SECTION 1: HERO - OPTIMIZED FOR ABOVE THE FOLD */}
-            <section className="pt-20 md:pt-24 pb-8 md:pb-12 px-4 sm:px-6 relative overflow-hidden min-h-[80vh] flex items-center">
+            <section id="hero" className="pt-20 md:pt-24 pb-8 md:pb-12 px-4 sm:px-6 relative overflow-hidden min-h-[80vh] flex items-center">
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-[#1a365d]/5 -skew-x-12 -z-10 transform origin-top-right"></div>
                 <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6 md:gap-12 items-center w-full">
                     <div className="space-y-3 md:space-y-5 text-center lg:text-left">
@@ -93,7 +93,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
             </section>
 
             {/* SECTION 2: PROBLEMAS */}
-            <section className="py-20 bg-slate-50 px-4 sm:px-6">
+            <section id="problemas" className="py-20 bg-slate-50 px-4 sm:px-6">
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-2xl sm:text-3xl font-black text-center uppercase tracking-tighter mb-12">Você se Identifica com Alguma Dessas Situações?</h2>
                     <div className="grid gap-3">
@@ -136,8 +136,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 5: COMO FUNCIONA */}
-            <section className="py-20 px-4 sm:px-6 bg-[#1a365d] text-white">
+            {/* SECTION 4: COMO FUNCIONA (Fixed ID & Numbering) */}
+            <section id="como-funciona" className="py-20 px-4 sm:px-6 bg-[#1a365d] text-white">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
                         <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4">Tão Simples que Você Vai Usar Todos os Dias</h2>
@@ -159,8 +159,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 6: FUNCIONALIDADES */}
-            <section className="py-20 px-4 sm:px-6 bg-white">
+            {/* SECTION 5: FUNCIONALIDADES */}
+            <section id="funcionalidades" className="py-20 px-4 sm:px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-center mb-16">Tudo em um Só Lugar</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -182,8 +182,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 7: PROVA SOCIAL */}
-            <section className="py-20 px-4 sm:px-6 bg-slate-50">
+            {/* SECTION 6: PROVA SOCIAL */}
+            <section id="depoimentos" className="py-20 px-4 sm:px-6 bg-slate-50">
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-center mb-16">Donas de Salão que já Transformaram seus Negócios</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -208,8 +208,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 8: COMPARAÇÃO */}
-            <section className="py-20 px-4 sm:px-6 bg-white">
+            {/* SECTION 7: COMPARAÇÃO */}
+            <section id="comparativo" className="py-20 px-4 sm:px-6 bg-white">
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-2xl sm:text-4xl font-black text-[#1a365d] uppercase tracking-tighter text-center mb-12">FINANPRO vs Amadorismo</h2>
                     <div className="bg-white rounded-[2rem] overflow-hidden border-2 border-slate-100 shadow-xl">
@@ -233,8 +233,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 9: GARANTIA */}
-            <section className="py-20 px-4 sm:px-6 bg-slate-50">
+            {/* SECTION 8: GARANTIA */}
+            <section id="garantia" className="py-20 px-4 sm:px-6 bg-slate-50">
                 <div className="max-w-4xl mx-auto p-10 bg-white rounded-[2.5rem] border-4 border-[#10b981] shadow-xl relative overflow-hidden text-center">
                     <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-[#1a365d]">🛡️ TESTE GRÁTIS POR 7 DIAS</h2>
                     <p className="text-slate-500 font-medium text-sm md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
@@ -248,7 +248,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 10: PREÇOS (CARD INTELIGENTE) */}
+            {/* SECTION 9: PREÇOS (CARD INTELIGENTE) */}
             <section id="planos" className="py-20 px-4 sm:px-6 bg-white">
                 <div className="max-w-7xl mx-auto text-center mb-8">
                     <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-[#1a365d]">O Investimento que se Paga no Primeiro Mês</h2>
@@ -315,7 +315,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 11: FAQ */}
+            {/* SECTION 10: FAQ */}
             <section id="faq" className="py-20 px-4 sm:px-6 bg-slate-50">
                 <div className="max-w-4xl mx-auto">
                     <h2 className="text-2xl sm:text-4xl font-black text-[#1a365d] uppercase tracking-tighter text-center mb-12">Dúvidas Frequentes</h2>
@@ -336,8 +336,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION 12: CTA FINAL */}
-            <section className="py-20 px-4 sm:px-6 bg-gradient-to-br from-[#1a365d] to-[#059669] text-white text-center">
+            {/* SECTION 11: CTA FINAL */}
+            <section id="cta-final" className="py-20 px-4 sm:px-6 bg-gradient-to-br from-[#1a365d] to-[#059669] text-white text-center">
                 <div className="max-w-4xl mx-auto space-y-8">
                     <h2 className="text-3xl sm:text-5xl font-black uppercase tracking-tighter leading-tight">Está Pronta para Ter o Controle Total das Finanças?</h2>
                     <button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })} className="px-12 py-6 bg-white text-[#1a365d] rounded-xl font-black uppercase text-xs md:text-sm tracking-[0.2em] shadow-2xl hover:scale-110 active:scale-95 transition-all">
