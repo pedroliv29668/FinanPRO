@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import {
   Plus, Trash2, TrendingUp, TrendingDown, Target,
-  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard,
+  ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, History, ArrowDownLeft,
   Activity, Lightbulb, Settings, Star, CreditCard, Users, ArrowUpRight, Clock, Calendar, PiggyBank, BarChart, Palette, Trophy, PartyPopper, Receipt, Lock, Mail, ArrowRight, Check, AlertCircle, ShoppingBag, Save, CalendarDays, ArrowUp, ArrowDown, Bell, Sparkles
 } from 'lucide-react';
 import {
@@ -966,6 +966,46 @@ const App: React.FC = () => {
                     </form>
                   </section>
                 </div>
+
+                <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
+                  <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-4 mb-8">
+                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500"><History size={20} /></div>
+                    Histórico Recente
+                  </h2>
+                  <div className="space-y-4">
+                    {[
+                      ...receitas.map(r => ({ ...r, tipo: 'receita' })),
+                      ...despesas.map(d => ({ ...d, tipo: 'despesa' }))
+                    ]
+                      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+                      .slice(0, 10)
+                      .map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className={`p-2 rounded-lg ${item.tipo === 'receita' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                              {item.tipo === 'receita' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-800 uppercase">
+                                {'cliente' in item ? item.cliente : item.descricao}
+                              </p>
+                              <p className="text-[10px] font-semibold text-slate-400">
+                                {new Date(item.data).toLocaleDateString('pt-BR')} • {item.tipo === 'receita' ? ('procedimento' in item ? item.procedimento : 'Entrada') : 'Saída'}
+                              </p>
+                            </div>
+                          </div>
+                          <span className={`text-sm font-black ${item.tipo === 'receita' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {item.tipo === 'receita' ? '+' : '-'}{formatMoeda(item.valor)}
+                          </span>
+                        </div>
+                      ))}
+                    {receitas.length === 0 && despesas.length === 0 && (
+                      <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <p className="text-xs text-slate-400 font-bold uppercase">Nenhuma transação registrada ainda.</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
 
                 <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
                   <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
