@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, CreditCard, MessageCircle, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Lock, CreditCard, MessageCircle, ArrowRight, ShieldCheck, CircleCheck } from 'lucide-react';
 
 interface SubscriptionWallProps {
     userEmail: string;
@@ -35,7 +35,7 @@ const SubscriptionWall: React.FC<SubscriptionWallProps> = ({ userEmail, appColor
                     <div className="grid sm:grid-cols-2 gap-4 mb-10">
                         <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-left space-y-3">
                             <div className="flex items-center gap-2 text-[#059669] font-black text-[10px] uppercase tracking-widest">
-                                <CheckCircle2 size={16} /> Já assinou?
+                                <CircleCheck size={16} /> Já assinou?
                             </div>
                             <p className="text-xs text-slate-500 font-bold leading-tight">
                                 Se você acabou de pagar, aguarde até 5 minutos para a liberação automática.

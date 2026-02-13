@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Activity, Sparkles, ShieldCheck, CheckCircle2,
-    TrendingUp, BarChart2, Clock, CreditCard, Users,
+    Activity, Sparkles, ShieldCheck, CircleCheck,
+    TrendingUp, BarChart, Clock, CreditCard, Users,
     Star, PiggyBank, FileText, Zap, X, Check,
-    HelpCircle, MessageCircle
+    CircleHelp, MessageCircle
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -70,7 +70,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                                     <ShieldCheck size={16} className="text-emerald-500" /> Sem cartão
                                 </div>
                                 <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <CheckCircle2 size={16} className="text-emerald-500" /> 7 dias grátis
+                                    <CircleCheck size={16} className="text-emerald-500" /> 7 dias grátis
                                 </div>
                             </div>
                         </div>
@@ -122,7 +122,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                     <p className="text-base text-slate-400 font-medium mb-16 max-w-2xl mx-auto italic">"A amiga que entende de números para você não precisar se preocupar."</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
-                            { icon: <BarChart2 size={32} className="text-[#1a365d]" />, title: 'Lucro real em tempo real', desc: 'Saiba exatamente quanto está sobrando sem matemática complicada.' },
+                            { icon: <BarChart size={32} className="text-[#1a365d]" />, title: 'Lucro real em tempo real', desc: 'Saiba exatamente quanto está sobrando sem matemática complicada.' },
                             { icon: <Clock size={32} className="text-[#059669]" />, title: 'Economize 5+ horas', desc: 'Registre atendimentos em segundos. Relatórios prontos num clique.' },
                             { icon: <TrendingUp size={32} className="text-[#b76e79]" />, title: 'Aumente seus lucros', desc: 'Descubra serviços lucrativos e otimize seus custos agora.' }
                         ].map((b, i) => (
@@ -241,9 +241,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                         Experimente TODAS as funcionalidades sem pagar nada agora. Sem cartão de crédito.
                     </p>
                     <div className="flex flex-wrap justify-center gap-6 text-emerald-600 font-black uppercase text-[10px] tracking-widest">
-                        <span className="flex items-center gap-2"><CheckCircle2 size={18} /> Sem contrato</span>
-                        <span className="flex items-center gap-2"><CheckCircle2 size={18} /> 100% Online</span>
-                        <span className="flex items-center gap-2"><CheckCircle2 size={18} /> Suporte VIP</span>
+                        <span className="flex items-center gap-2"><CircleCheck size={18} /> Sem contrato</span>
+                        <span className="flex items-center gap-2"><CircleCheck size={18} /> 100% Online</span>
+                        <span className="flex items-center gap-2"><CircleCheck size={18} /> Suporte VIP</span>
                     </div>
                 </div>
             </section>
@@ -328,7 +328,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                             ["Posso cancelar quando quiser?", "Sim, sem letras miúdas. Não temos fidelidade. Você paga o mês e usa."]
                         ].map((faq, i) => (
                             <div key={i} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm group hover:border-[#b76e79] transition-all">
-                                <h3 className="text-base font-black uppercase text-[#1a365d] mb-3 flex items-center gap-3"><HelpCircle size={18} className="text-[#b76e79] shrink-0" /> {faq[0]}</h3>
+                                <h3 className="text-base font-black uppercase text-[#1a365d] mb-3 flex items-center gap-3"><CircleHelp size={18} className="text-[#b76e79] shrink-0" /> {faq[0]}</h3>
                                 <p className="text-slate-500 text-sm font-medium leading-relaxed">{faq[1]}</p>
                             </div>
                         ))}

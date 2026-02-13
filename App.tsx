@@ -3,10 +3,10 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import {
   Plus, Trash2, TrendingUp, TrendingDown, Target,
   ChevronLeft, ChevronRight, Menu, X, LayoutDashboard,
-  Activity, Lightbulb, Settings, Star, CreditCard, Users, ArrowUpRight, Clock, Calendar, PiggyBank, BarChart3, Palette, Trophy, PartyPopper, Receipt, Lock, Mail, ArrowRight, CheckCircle2, AlertCircle, ShoppingBag, Save, CalendarDays, ArrowUp, ArrowDown, Bell, Sparkles
+  Activity, Lightbulb, Settings, Star, CreditCard, Users, ArrowUpRight, Clock, Calendar, PiggyBank, BarChart, Palette, Trophy, PartyPopper, Receipt, Lock, Mail, ArrowRight, Check, AlertCircle, ShoppingBag, Save, CalendarDays, ArrowUp, ArrowDown, Bell, Sparkles
 } from 'lucide-react';
 import {
-  BarChart,
+  BarChart as RechartsBarChart,
   Bar,
   XAxis,
   YAxis,
@@ -524,7 +524,7 @@ const App: React.FC = () => {
                   <div className="animate-fadeIn pb-32 space-y-12 sm:space-y-16 lg:space-y-24 px-4 sm:px-6">
                     <header className="flex items-center gap-4 sm:gap-6">
                       <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center text-indigo-600 border border-slate-100 shadow-sm shrink-0">
-                        <BarChart3 size={24} className="sm:size-[32px]" />
+                        <BarChart size={24} className="sm:size-[32px]" />
                       </div>
                       <div className="min-w-0">
                         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold uppercase tracking-tighter text-slate-800 truncate">Analytics</h2>
@@ -561,7 +561,7 @@ const App: React.FC = () => {
                         </div>
 
                         <div className="p-6 sm:p-10 rounded-[1.5rem] sm:rounded-[2rem] bg-white border border-slate-100 shadow-sm relative overflow-hidden group">
-                          <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform"><BarChart3 size={120} className="sm:size-[160px]" /></div>
+                          <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:scale-110 transition-transform"><BarChart size={120} className="sm:size-[160px]" /></div>
                           <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 sm:mb-6">Lucro Líquido</p>
                           <div className="flex flex-col gap-1 sm:gap-2 mb-6 sm:mb-8 min-w-0">
                             <span className={`text-2xl sm:text-4xl font-black truncate ${lucroReal >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>{formatMoeda(lucroReal)}</span>
@@ -799,7 +799,7 @@ const App: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
                       <div className="lg:col-span-8 bg-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 lg:p-8 text-white shadow-xl relative overflow-hidden">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4 relative z-10">
-                          <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest flex items-center gap-3"><BarChart3 size={18} className="text-indigo-400 sm:size-[20px]" /> Performance Financeira</h2>
+                          <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-widest flex items-center gap-3"><BarChart size={18} className="text-indigo-400 sm:size-[20px]" /> Performance Financeira</h2>
                           <span className="text-[10px] sm:text-xs font-bold px-4 py-1.5 rounded-full bg-white/10" style={{ color: appColor }}>{formatMoeda(lucroReal)} Lucro</span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 relative z-10">
@@ -1317,7 +1317,7 @@ const App: React.FC = () => {
                   <nav className="space-y-3 sm:space-y-4 flex-1">
                     <button onClick={() => { setCurrentView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'dashboard' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'dashboard' ? appColor : 'transparent' }}><LayoutDashboard size={18} className="sm:size-[20px]" /> Overview</button>
                     <button onClick={() => { setCurrentView('agenda'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'agenda' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'agenda' ? appColor : 'transparent' }}><Calendar size={18} className="sm:size-[20px]" /> Agenda</button>
-                    <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart3 size={18} className="sm:size-[20px]" /> Analytics</button>
+                    <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart size={18} className="sm:size-[20px]" /> Analytics</button>
                     <button onClick={() => { setCurrentView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} className="sm:size-[20px]" /> Clientes</button>
                     <button onClick={() => { setCurrentView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} className="sm:size-[20px]" /> Marketing</button>
                     <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} className="sm:size-[20px]" /> Estilo</button>
