@@ -231,6 +231,18 @@ const App: React.FC = () => {
             if (p.projecaoSelecionada !== undefined) setProjecaoSelecionada(p.projecaoSelecionada);
             if (p.agendamentos) setAgendamentos(p.agendamentos);
             if (p.clientes) setClientes(p.clientes);
+
+            // Sanitização de dados legados (garantir mes/ano)
+            setReceitas(prev => prev.map(r => {
+              if (r.mes !== undefined && r.ano !== undefined) return r;
+              const d = new Date(r.data + 'T12:00:00');
+              return { ...r, mes: d.getMonth(), ano: d.getFullYear() };
+            }));
+            setDespesasVariaveis(prev => prev.map(d => {
+              if (d.mes !== undefined && d.ano !== undefined) return d;
+              const dt = new Date(d.data + 'T12:00:00');
+              return { ...dt, mes: dt.getMonth(), ano: dt.getFullYear() };
+            }));
           }
           setHasLoadedData(true);
         } catch (err) {
@@ -497,13 +509,44 @@ const App: React.FC = () => {
           <SubscriptionWall userEmail={userEmail} appColor={appColor} onLogout={handleLogout} />
         ) : (
           <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6 lg:py-10">
-            <header className="flex justify-between items-center mb-4 sm:mb-8 bg-white/70 backdrop-blur-md sticky top-2 sm:top-4 z-[100] px-3 sm:px-6 py-2 sm:py-3 rounded-2xl border border-white shadow-sm transition-all">
-              <button onClick={() => setIsSidebarOpen(true)} className="p-2 sm:p-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-all active:scale-95"><Menu size={20} /></button>
-              <div className="hidden sm:flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: appColor }}></div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{currentView === 'dashboard' ? 'Overview' : currentView === 'agenda' ? 'Agenda' : currentView === 'clientes' ? 'Clientes' : currentView === 'marketing' ? 'Marketing' : 'Analytics'}</span>
+            <header className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-8 bg-white/70 backdrop-blur-md sticky top-2 sm:top-4 z-[100] px-3 sm:px-6 py-3 sm:py-3 rounded-2xl border border-white shadow-sm transition-all gap-3 sm:gap-0">
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                <button onClick={() => setIsSidebarOpen(true)} className="p-2 sm:p-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-all active:scale-95"><Menu size={20} /></button>
+                <div className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
+                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: appColor }}></div>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{currentView === 'dashboard' ? 'Overview' : currentView === 'agenda' ? 'Agenda' : currentView === 'clientes' ? 'Clientes' : currentView === 'marketing' ? 'Marketing' : 'Analytics'}</span>
+                </div>
               </div>
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-slate-900 rounded-xl flex items-center justify-center text-[10px] sm:text-[11px] font-bold text-white shadow-md">{userName.slice(0, 3).toUpperCase()}</div>
+
+              <div className="flex items-center gap-4 bg-slate-100/50 p-1.5 rounded-xl border border-slate-200/50">
+                <button
+                  onClick={() => {
+                    if (mesAtual === 0) {
+                      // Se for janeiro, não fazemos nada ou voltamos para dezembro do ano anterior se tivéssemos controle de ano editável
+                    } else {
+                      setMesAtual(mesAtual - 1);
+                    }
+                  }}
+                  className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest min-w-[100px] text-center">{meses[mesAtual]} {anoAtual}</span>
+                <button
+                  onClick={() => {
+                    if (mesAtual === 11) {
+                      // Próximo ano if editable
+                    } else {
+                      setMesAtual(mesAtual + 1);
+                    }
+                  }}
+                  className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-indigo-600 transition-all"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+
+              <div className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 bg-slate-900 rounded-xl items-center justify-center text-[10px] sm:text-[11px] font-bold text-white shadow-md">{userName.slice(0, 3).toUpperCase()}</div>
             </header>
 
             {currentView === 'agenda' && (
@@ -925,101 +968,122 @@ const App: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14" id="section-lancamentos">
-                  <section className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:scale-110 transition-transform"><Plus size={120} /></div>
-                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-8 flex items-center gap-3 relative z-10"><Plus size={20} className="text-emerald-500" /> Lançar Receita</h3>
-                    <form onSubmit={handleAddReceita} className="space-y-4 relative z-10">
-                      <input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase text-slate-500" required />
-                      <input type="text" placeholder="CLIENTE" value={formReceita.cliente} onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase" required />
-                      <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" id="section-lancamentos">
+                  <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 transition-transform"><Plus size={80} /></div>
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10"><Plus size={16} className="text-emerald-500" /> Lançar Receita</h3>
+                    <form onSubmit={handleAddReceita} className="space-y-3 relative z-10">
+                      <div className="grid grid-cols-2 gap-3">
+                        <input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
+                        <input type="text" placeholder="CLIENTE" value={formReceita.cliente} onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                      </div>
+                      <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required>
                         <option value="">Selecione o Procedimento...</option>
                         {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}
                       </select>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs" required />
-                        <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
+                        <div className="flex gap-1.5">
                           {['Pix', 'Cartão', 'Dinheiro'].map(f => (
-                            <button key={f} type="button" onClick={() => setFormReceita({ ...formReceita, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border ${formReceita.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
+                            <button key={f} type="button" onClick={() => setFormReceita({ ...formReceita, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${formReceita.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
                           ))}
                         </div>
                       </div>
-                      <button type="submit" className="w-full py-5 bg-emerald-500 text-white rounded-2xl font-black uppercase text-xs tracking-[0.15em] shadow-[0_20px_40px_rgba(16,185,129,0.2)] hover:scale-[1.01] transition-all">Salvar Entrada</button>
+                      <button type="submit" className="w-full py-3 bg-emerald-500 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.15em] shadow-lg hover:scale-[1.01] transition-all">Salvar Entrada</button>
                     </form>
                   </section>
 
-                  <section className="bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:scale-110 transition-transform"><TrendingDown size={120} /></div>
-                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-8 flex items-center gap-3 relative z-10"><TrendingDown size={20} className="text-rose-500" /> Lançar Despesa</h3>
-                    <form onSubmit={handleAddDespesa} className="space-y-4 relative z-10">
-                      <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase text-slate-500" required />
-                      <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs uppercase" required />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-4 rounded-xl border border-slate-200 font-bold text-xs" required />
-                        <div className="flex gap-2">
+                  <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 transition-transform"><TrendingDown size={80} /></div>
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10"><TrendingDown size={16} className="text-rose-500" /> Lançar Despesa</h3>
+                    <form onSubmit={handleAddDespesa} className="space-y-3 relative z-10">
+                      <div className="grid grid-cols-2 gap-3">
+                        <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
+                        <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
+                        <div className="flex gap-1.5">
                           {['Pix', 'Cartão', 'Dinheiro'].map(f => (
-                            <button key={f} type="button" onClick={() => setFormDespesa({ ...formDespesa, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all border ${formDespesa.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
+                            <button key={f} type="button" onClick={() => setFormDespesa({ ...formDespesa, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${formDespesa.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
                           ))}
                         </div>
                       </div>
-                      <button type="submit" className="w-full py-5 bg-rose-500 text-white rounded-2xl font-black uppercase text-xs tracking-[0.15em] shadow-[0_20px_40px_rgba(244,63,94,0.2)] hover:scale-[1.01] transition-all">Salvar Saída</button>
+                      <button type="submit" className="w-full py-3 bg-rose-500 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.15em] shadow-lg hover:scale-[1.01] transition-all">Salvar Saída</button>
                     </form>
                   </section>
                 </div>
 
-                <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm animate-fadeIn">
-                  <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-4 mb-8">
-                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500"><History size={20} /></div>
-                    Histórico Recente
+                <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm animate-fadeIn">
+                  <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3 mb-6">
+                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500"><History size={18} /></div>
+                    Histórico do Mês
                   </h2>
-                  <div className="space-y-4">
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
                     {(() => {
                       try {
                         const listaReceitas = Array.isArray(receitas) ? receitas : [];
-                        const listaDespesas = Array.isArray(despesas) ? despesas : [];
-                        const todas = [
-                          ...listaReceitas.map(r => ({ ...r, tipo: 'receita' })),
-                          ...listaDespesas.map(d => ({ ...d, tipo: 'despesa' }))
+                        const listaDespesas = Array.isArray(despesasVariaveis) ? despesasVariaveis : [];
+                        const todasFull = [
+                          ...listaReceitas.map(r => ({ ...r, tipo: 'receita' as const })),
+                          ...listaDespesas.map(d => ({ ...d, tipo: 'despesa' as const }))
                         ];
+
+                        // Mostra as últimas 15 transações de todo o histórico, priorizando recência absoluta
+                        const todas = todasFull
+                          .filter(item => item && item.data)
+                          .sort((a, b) => b.id - a.id)
+                          .slice(0, 15);
 
                         if (todas.length === 0) {
                           return (
                             <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                              <p className="text-xs text-slate-400 font-bold uppercase">Nenhuma transação registrada ainda.</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase">Nenhuma transação neste mês ainda.</p>
                             </div>
                           );
                         }
 
                         return todas
                           .filter(item => item && item.data)
-                          .sort((a, b) => {
-                            const dataA = new Date(a.data).getTime() || 0;
-                            const dataB = new Date(b.data).getTime() || 0;
-                            return dataB - dataA;
-                          })
-                          .slice(0, 10)
-                          .map((item: any, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100 transition-colors">
-                              <div className="flex items-center gap-4">
-                                <div className={`p-2 rounded-lg ${item.tipo === 'receita' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                                  {item.tipo === 'receita' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
+                          .sort((a, b) => b.id - a.id)
+                          .map((item: any) => (
+                            <div key={`${item.tipo}-${item.id}`} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 hover:bg-white transition-colors group">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`p-1.5 rounded-lg shrink-0 ${item.tipo === 'receita' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                  {item.tipo === 'receita' ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
                                 </div>
-                                <div>
-                                  <p className="text-xs font-bold text-slate-800 uppercase">
-                                    {(item.tipo === 'receita' ? item.cliente : item.descricao) || 'Sem descrição'}
+                                <div className="min-w-0">
+                                  <p className="text-[11px] font-bold text-slate-800 uppercase truncate">
+                                    {item.tipo === 'receita' ? (item.cliente || 'Entrada') : (item.descricao || 'Saída')}
                                   </p>
-                                  <p className="text-[10px] font-semibold text-slate-400">
-                                    {new Date(item.data).toLocaleDateString('pt-BR')} • {item.tipo === 'receita' ? (item.procedimento || 'Entrada') : 'Saída'}
+                                  <p className="text-[9px] font-semibold text-slate-400 truncate">
+                                    {new Date(item.data + 'T12:00:00').toLocaleDateString('pt-BR')} {item.tipo === 'receita' && item.procedimento ? `• ${item.procedimento}` : ''}
                                   </p>
                                 </div>
                               </div>
-                              <span className={`text-sm font-black ${item.tipo === 'receita' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                {item.tipo === 'receita' ? '+' : '-'}{formatMoeda(item.valor || 0)}
-                              </span>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className={`text-xs font-black ${item.tipo === 'receita' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                  {item.tipo === 'receita' ? '+' : '-'}{formatMoeda(item.valor || 0)}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    if (confirm('Remover esta transação?')) {
+                                      if (item.tipo === 'receita') {
+                                        setReceitas(prev => prev.filter(r => r.id !== item.id));
+                                      } else {
+                                        setDespesasVariaveis(prev => prev.filter(d => d.id !== item.id));
+                                      }
+                                    }
+                                  }}
+                                  className="p-1 text-slate-200 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
                             </div>
                           ));
                       } catch (error) {
-                        return <div className="text-xs text-rose-500 font-bold p-4">Erro ao carregar histórico</div>;
+                        return <div className="text-[10px] text-rose-500 font-bold p-4">Erro ao carregar histórico</div>;
                       }
                     })()}
                   </div>
