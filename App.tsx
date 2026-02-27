@@ -855,6 +855,64 @@ const App: React.FC = () => {
                   </div>
                 )}
 
+                {/* INFORMAÇÕES FINANCEIRAS PREMIUM (MODO PESSOAL - TOPO) */}
+                {projectMode === 'personal' && (
+                  <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+                    {/* Reserva de Emergência */}
+                    <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl border border-white/5 relative overflow-hidden group">
+                      <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><PiggyBank size={80} /></div>
+                      <div className="relative z-10">
+                        <div className="flex justify-between items-center mb-6">
+                          <h2 className="text-[10px] font-extrabold uppercase flex items-center gap-2 text-indigo-400"><PiggyBank size={16} /> Reserva de Paz</h2>
+                          <button onClick={() => setModalReserva(true)} className="p-2 bg-white/10 rounded-xl text-white hover:bg-white/20 transition-all border border-white/10 shadow-lg"><Plus size={14} /></button>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-end">
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Salvo</p>
+                              <p className="text-2xl font-black text-white">{formatMoeda(reservaEmergencia)}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[8px] font-bold text-slate-500 uppercase">Meta (6 meses)</p>
+                              <p className="text-[10px] font-bold text-slate-400">{formatMoeda(metaReserva)}</p>
+                            </div>
+                          </div>
+                          <div className="w-full bg-white/10 h-3.5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                            <div className={`h-full rounded-full transition-all duration-1000 ${percentualReserva >= 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} style={{ width: `${percentualReserva}%` }}></div>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black uppercase text-slate-400">{percentualReserva.toFixed(0)}%</span>
+                            <span className={`text-[10px] font-black uppercase flex items-center gap-1 ${percentualReserva >= 100 ? 'text-emerald-400' : 'text-indigo-400'}`}>{percentualReserva >= 100 ? 'Paz Garantida' : 'Construindo'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dinheiro Livre */}
+                    <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col justify-center text-center relative overflow-hidden transition-all hover:scale-[1.02]">
+                      <div className={`absolute left-0 top-0 w-1.5 h-full ${dinheiroLivre >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Dinheiro Livre (Sobrou)</p>
+                      <p className={`text-4xl font-black ${dinheiroLivre >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>{formatMoeda(dinheiroLivre)}</p>
+                      <div className="mt-4 flex items-center justify-center gap-2">
+                        <div className={`p-1 rounded-full ${dinheiroLivre >= 0 ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500'}`}>
+                          {dinheiroLivre >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Cálculo após todas as contas</span>
+                      </div>
+                    </div>
+
+                    {/* Fatura do Cartão */}
+                    <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 relative overflow-hidden group">
+                      <div className="absolute right-0 bottom-0 p-4 opacity-5 group-hover:scale-110 transition-all"><CreditCard size={100} /></div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><CreditCard size={16} className="text-rose-500" /> Próxima Fatura</p>
+                      <p className="text-3xl font-black text-slate-800 mb-2">{formatMoeda(proximaFatura)}</p>
+                      <div className="bg-rose-50 text-rose-600 p-3 rounded-2xl border border-rose-100/50">
+                        <p className="text-[10px] font-bold uppercase leading-tight italic">Provisionar esse valor para o vencimento do seu cartão.</p>
+                      </div>
+                    </div>
+                  </section>
+                )}
+
                 <section className="rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[3rem] p-5 sm:p-10 lg:p-20 text-white shadow-2xl relative overflow-hidden group transition-all" style={{ background: `linear-gradient(135deg, ${appColor}, ${appColor}EE)` }}>
                   <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none"><Activity size={120} className="sm:size-[280px]" /></div>
                   <div className="relative z-10 text-center">
@@ -1078,49 +1136,46 @@ const App: React.FC = () => {
 
                   {projectMode === 'personal' && (
                     <div className="xl:col-span-5 flex flex-col gap-4 sm:gap-6">
-                      <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1 flex flex-col">
-                        <div className="flex justify-between items-center mb-4">
-                          <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><LucidePieChart size={14} className="text-pink-500" /> Distribuição de Gastos</h2>
+                      <section className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm flex-1 flex flex-col">
+                        <div className="flex justify-between items-center mb-8">
+                          <h2 className="text-[11px] sm:text-[12px] font-black text-slate-800 uppercase flex items-center gap-3"><LucidePieChart size={18} className="text-pink-500" /> Ranking de Gastos</h2>
                         </div>
-                        <div className="flex-1 min-h-[220px] flex items-center justify-center">
+
+                        <div className="flex-1 space-y-6">
                           {analyticsData.despesasPorCategoria.length > 0 ? (
-                            <div className="flex flex-col h-full">
-                              <div className="flex-1 min-h-[180px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <PieChart>
-                                    <Pie
-                                      data={analyticsData.despesasPorCategoria}
-                                      cx="50%"
-                                      cy="50%"
-                                      innerRadius={50}
-                                      outerRadius={70}
-                                      paddingAngle={5}
-                                      dataKey="value"
-                                    >
-                                      {analyticsData.despesasPorCategoria.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][index % 6]} />
-                                      ))}
-                                    </Pie>
-                                    <Tooltip
-                                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
-                                      formatter={(value: number) => formatMoeda(value)}
-                                    />
-                                  </PieChart>
-                                </ResponsiveContainer>
-                              </div>
-                              <div className="mt-4 grid grid-cols-2 gap-2">
-                                {analyticsData.despesasPorCategoria.slice(0, 4).map((item, idx) => (
-                                  <div key={idx} className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366f1', '#f43f5e', '#f59e0b', '#10b981'][idx % 4] }}></div>
-                                    <span className="text-[9px] font-bold text-slate-500 uppercase truncate">{item.name}</span>
+                            [...analyticsData.despesasPorCategoria].sort((a, b) => b.value - a.value).map((cat, i) => {
+                              const totalGeralDespesas = analyticsData.despesasPorCategoria.reduce((acc, curr) => acc + curr.value, 0);
+                              const percent = (cat.value / (totalGeralDespesas || 1)) * 100;
+                              const colors = ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+
+                              return (
+                                <div key={i} className="animate-fadeInLeft" style={{ animationDelay: `${i * 100}ms` }}>
+                                  <div className="flex justify-between items-end mb-2">
+                                    <div className="flex items-center gap-3">
+                                      <div className="p-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-100 font-black text-[9px]">#{i + 1}</div>
+                                      <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">{cat.name}</span>
+                                    </div>
+                                    <span className="text-[11px] font-black text-slate-900">{formatMoeda(cat.value)}</span>
                                   </div>
-                                ))}
-                              </div>
-                            </div>
+                                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5">
+                                    <div
+                                      className="h-full rounded-full transition-all duration-1000 shadow-sm hover:brightness-110"
+                                      style={{ width: `${percent}%`, backgroundColor: colors[i % colors.length] }}
+                                    ></div>
+                                  </div>
+                                  <div className="flex justify-end mt-1">
+                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{percent.toFixed(0)}% do total</span>
+                                  </div>
+                                </div>
+                              );
+                            })
                           ) : (
-                            <div className="text-center space-y-2 py-8">
-                              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum gasto lançado</p>
-                              <p className="text-[8px] text-slate-400 font-medium italic">Lance uma despesa para ver o gráfico e o ranking</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 border border-dashed border-slate-200"><ShoppingBag size={30} /></div>
+                              <div>
+                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sem gastos registrados</p>
+                                <p className="text-[9px] text-slate-300 font-medium italic mt-1">Adicione despeser para ver seu ranking</p>
+                              </div>
                             </div>
                           )}
                         </div>
