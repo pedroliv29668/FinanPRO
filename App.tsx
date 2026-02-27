@@ -230,46 +230,51 @@ const App: React.FC = () => {
 
           if (data && data.payload) {
             const p = data.payload;
-            if (p.receitas) setReceitas(p.receitas);
-            if (p.despesasVariaveis) setDespesasVariaveis(p.despesasVariaveis);
+            const legacyIds = ['1', '2', '3', '4', '5', '6'];
+
+            if (p.receitas) {
+              const sanitized = p.receitas.map((r: any) => {
+                const d = new Date(r.data + 'T12:00:00');
+                return {
+                  ...r,
+                  mes: r.mes !== undefined ? r.mes : d.getMonth(),
+                  ano: r.ano !== undefined ? r.ano : d.getFullYear(),
+                  mode: r.mode || 'business'
+                };
+              });
+              setReceitas(sanitized);
+            }
+
+            if (p.despesasVariaveis) {
+              const sanitized = p.despesasVariaveis.map((d: any) => {
+                const dt = new Date(d.data + 'T12:00:00');
+                return {
+                  ...d,
+                  mes: d.mes !== undefined ? d.mes : dt.getMonth(),
+                  ano: d.ano !== undefined ? d.ano : dt.getFullYear(),
+                  mode: d.mode || 'business'
+                };
+              });
+              setDespesasVariaveis(sanitized);
+            }
+
+            if (p.gastosFixos) {
+              const sanitized = p.gastosFixos.map((g: any) => ({
+                ...g,
+                mode: legacyIds.includes(g.id.toString()) ? 'business' : (g.mode || 'business')
+              }));
+              setGastosFixos(sanitized);
+            }
+
             if (p.sonhos) setSonhos(p.sonhos);
             if (p.servicos) setServicos(p.servicos);
             if (p.metas) setMetas(p.metas);
-            if (p.gastosFixos) setGastosFixos(p.gastosFixos);
             if (p.appName) setAppName(p.appName);
             if (p.appColor) setAppColor(p.appColor);
             if (p.projecaoSelecionada !== undefined) setProjecaoSelecionada(p.projecaoSelecionada);
             if (p.agendamentos) setAgendamentos(p.agendamentos);
             if (p.clientes) setClientes(p.clientes);
             if (p.projectMode) setProjectMode(p.projectMode);
-
-            // Sanitização de dados legados (garantir mes/ano e modo default)
-            setReceitas(prev => prev.map(r => {
-              const d = new Date(r.data + 'T12:00:00');
-              return {
-                ...r,
-                mes: r.mes !== undefined ? r.mes : d.getMonth(),
-                ano: r.ano !== undefined ? r.ano : d.getFullYear(),
-                mode: r.mode || 'business'
-              };
-            }));
-            setDespesasVariaveis(prev => prev.map(d => {
-              const dt = new Date(d.data + 'T12:00:00');
-              return {
-                ...d,
-                mes: d.mes !== undefined ? d.mes : dt.getMonth(),
-                ano: d.ano !== undefined ? d.ano : dt.getFullYear(),
-                mode: d.mode || 'business'
-              };
-            }));
-            setGastosFixos(prev => prev.map(g => {
-              // IDs 1-6 são os padrões da clínica (Modo Business)
-              const legacyIds = ['1', '2', '3', '4', '5', '6'];
-              return {
-                ...g,
-                mode: legacyIds.includes(g.id) ? 'business' : (g.mode || 'business')
-              };
-            }));
           }
           setHasLoadedData(true);
         } catch (err) {
