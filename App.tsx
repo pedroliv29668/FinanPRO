@@ -127,12 +127,12 @@ const App: React.FC = () => {
   }));
 
   const [gastosFixos, setGastosFixos] = useState<GastoFixo[]>(() => getSaved('gastosFixos', [
-    { id: '1', nome: 'ALUGUEL', valor: 0, isPadrao: true },
-    { id: '2', nome: 'ÁGUA', valor: 0, isPadrao: true },
-    { id: '3', nome: 'LUZ', valor: 0, isPadrao: true },
-    { id: '4', nome: 'INTERNET', valor: 0, isPadrao: true },
-    { id: '5', nome: 'SALÁRIOS FIXOS', valor: 0, isPadrao: true },
-    { id: '6', nome: 'CONTADOR', valor: 0, isPadrao: true },
+    { id: '1', nome: 'ALUGUEL', valor: 0, isPadrao: true, mode: 'business' },
+    { id: '2', nome: 'ÁGUA', valor: 0, isPadrao: true, mode: 'business' },
+    { id: '3', nome: 'LUZ', valor: 0, isPadrao: true, mode: 'business' },
+    { id: '4', nome: 'INTERNET', valor: 0, isPadrao: true, mode: 'business' },
+    { id: '5', nome: 'SALÁRIOS FIXOS', valor: 0, isPadrao: true, mode: 'business' },
+    { id: '6', nome: 'CONTADOR', valor: 0, isPadrao: true, mode: 'business' },
   ]));
 
   const [inputAportes, setInputAportes] = useState<Record<number, string>>({});
@@ -262,7 +262,7 @@ const App: React.FC = () => {
                 mode: d.mode || 'business'
               };
             }));
-            setGastosFixos(prev => prev.map(g => ({ ...g, mode: g.mode || 'business' })));
+            setGastosFixos(prev => prev.map(g => ({ ...g, mode: g.mode ? g.mode : 'business' })));
           }
           setHasLoadedData(true);
         } catch (err) {
@@ -1377,14 +1377,12 @@ const App: React.FC = () => {
                         <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
                           <div className="flex justify-between items-center mb-2">
                             <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
-                            {!g.isPadrao && (
-                              <button
-                                onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
-                                className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
+                              className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                           <input
                             type="number"
