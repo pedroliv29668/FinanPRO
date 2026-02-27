@@ -345,9 +345,9 @@ const App: React.FC = () => {
       s.lucro += (s.faturamento - fixoSemanal);
     });
     const historicoMensal = meses.map((nome, i) => {
-      const rec = receitas.filter(r => r.mes === i).reduce((acc, curr) => acc + curr.valor, 0);
-      const varExp = despesasVariaveis.filter(d => d.mes === i).reduce((acc, curr) => acc + curr.valor, 0);
-      return { nome, faturamento: rec, lucro: rec - (varExp + totalFixos) };
+      const rec = receitasFiltradas.filter(r => r.mes === i).reduce((acc, curr) => acc + curr.valor, 0);
+      const varExp = despesasFiltradas.filter(d => d.mes === i).reduce((acc, curr) => acc + curr.valor, 0);
+      return { nome, faturamento: rec, lucro: rec - (varExp + (projectMode === 'business' ? totalFixos : 0)) };
     });
     const proporcaoGastos = [
       { name: 'Fixos', value: totalFixos, color: '#6366f1' },
@@ -1072,8 +1072,8 @@ const App: React.FC = () => {
                   <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
                     {(() => {
                       try {
-                        const listaReceitas = Array.isArray(receitas) ? receitas : [];
-                        const listaDespesas = Array.isArray(despesasVariaveis) ? despesasVariaveis : [];
+                        const listaReceitas = Array.isArray(receitasFiltradas) ? receitasFiltradas : [];
+                        const listaDespesas = Array.isArray(despesasFiltradas) ? despesasFiltradas : [];
                         const todasFull = [
                           ...listaReceitas.map(r => ({ ...r, tipo: 'receita' as const })),
                           ...listaDespesas.map(d => ({ ...d, tipo: 'despesa' as const }))
