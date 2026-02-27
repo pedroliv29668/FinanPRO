@@ -135,6 +135,8 @@ const App: React.FC = () => {
     { id: '6', nome: 'CONTADOR', valor: 0, isPadrao: true, mode: 'business' },
   ]));
 
+  const [reservaEmergencia, setReservaEmergencia] = useState<number>(() => getSaved('reservaEmergencia', 0));
+  const [modalReserva, setModalReserva] = useState(false);
   const [inputAportes, setInputAportes] = useState<Record<number, string>>({});
 
   const [formReceita, setFormReceita] = useState({
@@ -275,6 +277,9 @@ const App: React.FC = () => {
             if (p.agendamentos) setAgendamentos(p.agendamentos);
             if (p.clientes) setClientes(p.clientes);
             if (p.projectMode) setProjectMode(p.projectMode);
+            if (p.reservaEmergencia !== undefined) setReservaEmergencia(p.reservaEmergencia);
+
+            // Sanitização de dados legados (garantir mes/ano e modo default)
           }
           setHasLoadedData(true);
         } catch (err) {
@@ -283,7 +288,7 @@ const App: React.FC = () => {
       };
       loadData();
     } else {
-      setHasLoadedData(false);
+      setHasLoadedData(true); // Se não estiver carregando do supabase, libera
     }
   }, [isAuthenticated]);
 
@@ -306,6 +311,13 @@ const App: React.FC = () => {
   const totalVariaveis = useMemo(() => despesasMes.reduce((acc, curr) => acc + curr.valor, 0), [despesasMes]);
   const totalDespesas = totalFixos + totalVariaveis;
   const lucroReal = totalReceitas - totalDespesas;
+
+  // Novos cálculos para o Modo Pessoal
+  const proximaFatura = useMemo(() => despesasMes.filter(d => d.formaPagamento === 'Cartão').reduce((acc, curr) => acc + curr.valor, 0), [despesasMes]);
+  const dinheiroLivre = totalReceitas - totalFixos - totalVariaveis;
+  const metaReserva = totalFixos * 6;
+  const percentualReserva = metaReserva > 0 ? Math.min(100, (reservaEmergencia / metaReserva) * 100) : 0;
+
   const margemReal = totalReceitas > 0 ? (lucroReal / totalReceitas) * 100 : 0;
 
   const metaCalculadaPelaProjecao = useMemo(() => {
@@ -398,6 +410,7 @@ const App: React.FC = () => {
     localStorage.setItem('appName', JSON.stringify(appName));
     localStorage.setItem('appColor', JSON.stringify(appColor));
     localStorage.setItem('projectMode', projectMode);
+    localStorage.setItem('reservaEmergencia', JSON.stringify(reservaEmergencia));
     localStorage.setItem('gastosFixos', JSON.stringify(gastosFixos));
     localStorage.setItem('projecaoSelecionada', JSON.stringify(projecaoSelecionada));
     localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
@@ -408,7 +421,7 @@ const App: React.FC = () => {
         const payload = {
           receitas, despesasVariaveis, sonhos, metas, servicos,
           appName, appColor, gastosFixos, projecaoSelecionada,
-          agendamentos, clientes, projectMode
+          agendamentos, clientes, projectMode, reservaEmergencia
         };
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -1095,15 +1108,11 @@ const App: React.FC = () => {
                                   </PieChart>
                                 </ResponsiveContainer>
                               </div>
-                              <div className="mt-4 space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-1">
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">Ranking de Gastos</p>
-                                {[...analyticsData.despesasPorCategoria].sort((a, b) => b.value - a.value).map((cat, i) => (
-                                  <div key={i} className="flex justify-between items-center text-[10px] font-bold py-1">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][i % 6] }}></div>
-                                      <span className="text-slate-600 uppercase">{cat.name}</span>
-                                    </div>
-                                    <span className="text-slate-900">{formatMoeda(cat.value)}</span>
+                              <div className="mt-4 grid grid-cols-2 gap-2">
+                                {analyticsData.despesasPorCategoria.slice(0, 4).map((item, idx) => (
+                                  <div key={idx} className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6366f1', '#f43f5e', '#f59e0b', '#10b981'][idx % 4] }}></div>
+                                    <span className="text-[9px] font-bold text-slate-500 uppercase truncate">{item.name}</span>
                                   </div>
                                 ))}
                               </div>
@@ -1671,6 +1680,59 @@ const App: React.FC = () => {
                     </button>
                   </div>
                 )}
+              </div>
+            )
+          },
+          {
+            isOpen: modalReserva, setOpen: setModalReserva, title: 'Reserva de Emergência', content: (
+              <div className="space-y-6">
+                <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-indigo-500 text-white rounded-lg">
+                      <PiggyBank size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-indigo-900 uppercase">Paz Financeira</h3>
+                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Sua segurança é prioridade</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-indigo-700 leading-relaxed font-medium">
+                    A reserva de emergência ideal deve cobrir pelo menos <b>6 meses</b> dos seus gastos fixos (Aluguel, Luz, etc). Ela serve para você nunca precisar de empréstimos em imprevistos.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Quanto você já tem guardado? (R$)</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">R$</span>
+                      <input
+                        type="number"
+                        value={reservaEmergencia}
+                        onChange={e => setReservaEmergencia(parseFloat(e.target.value) || 0)}
+                        className="w-full bg-slate-50 p-4 pl-10 rounded-xl font-bold border border-slate-200 outline-none text-lg text-slate-800"
+                        placeholder="0,00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                      <span>Meta Calculada</span>
+                      <span className="text-indigo-600">{formatMoeda(metaReserva)}</span>
+                    </div>
+                    <p className="text-[9px] text-slate-400 italic font-medium leading-tight">
+                      * Calculado automaticamente: R$ {totalFixos.toFixed(0)} (Gastos Fixos) x 6 meses.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setModalReserva(false)}
+                  className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-slate-800 transition-all"
+                >
+                  Salvar Reserva
+                </button>
               </div>
             )
           }
