@@ -126,14 +126,21 @@ const App: React.FC = () => {
     margemDesejada: 30
   }));
 
-  const [gastosFixos, setGastosFixos] = useState<GastoFixo[]>(() => getSaved('gastosFixos', [
-    { id: '1', nome: 'ALUGUEL', valor: 0, isPadrao: true, mode: 'business' },
-    { id: '2', nome: 'ÁGUA', valor: 0, isPadrao: true, mode: 'business' },
-    { id: '3', nome: 'LUZ', valor: 0, isPadrao: true, mode: 'business' },
-    { id: '4', nome: 'INTERNET', valor: 0, isPadrao: true, mode: 'business' },
-    { id: '5', nome: 'SALÁRIOS FIXOS', valor: 0, isPadrao: true, mode: 'business' },
-    { id: '6', nome: 'CONTADOR', valor: 0, isPadrao: true, mode: 'business' },
-  ]));
+  const [gastosFixos, setGastosFixos] = useState<GastoFixo[]>(() => {
+    const legacyIds = ['1', '2', '3', '4', '5', '6'];
+    const saved = getSaved('gastosFixos', [
+      { id: '1', nome: 'ALUGUEL', valor: 0, isPadrao: true, mode: 'business' },
+      { id: '2', nome: 'ÁGUA', valor: 0, isPadrao: true, mode: 'business' },
+      { id: '3', nome: 'LUZ', valor: 0, isPadrao: true, mode: 'business' },
+      { id: '4', nome: 'INTERNET', valor: 0, isPadrao: true, mode: 'business' },
+      { id: '5', nome: 'SALÁRIOS FIXOS', valor: 0, isPadrao: true, mode: 'business' },
+      { id: '6', nome: 'CONTADOR', valor: 0, isPadrao: true, mode: 'business' },
+    ]);
+    return saved.map((g: any) => ({
+      ...g,
+      mode: legacyIds.includes(g.id.toString()) ? 'business' : (g.mode || 'business')
+    }));
+  });
 
   const [reservaEmergencia, setReservaEmergencia] = useState<number>(() => getSaved('reservaEmergencia', 0));
   const [modalReserva, setModalReserva] = useState(false);
@@ -558,6 +565,15 @@ const App: React.FC = () => {
     setReceitas(prev => [novaReceitaPessoal, ...prev]);
   };
 
+  const handleLancarCartao = () => {
+    setFormDespesa(prev => ({ ...prev, formaPagamento: 'Cartão' }));
+    setCurrentView('reports');
+    // Pequeno timeout para dar tempo da view trocar
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
   const agendamentosAmanha = useMemo(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -904,7 +920,10 @@ const App: React.FC = () => {
                     {/* Fatura do Cartão */}
                     <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 relative overflow-hidden group">
                       <div className="absolute right-0 bottom-0 p-4 opacity-5 group-hover:scale-110 transition-all"><CreditCard size={100} /></div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><CreditCard size={16} className="text-rose-500" /> Próxima Fatura</p>
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard size={16} className="text-rose-500" /> Próxima Fatura</p>
+                        <button onClick={handleLancarCartao} className="p-2 bg-rose-50 rounded-xl text-rose-500 hover:bg-rose-100 transition-all border border-rose-100 shadow-sm flex items-center gap-1.5 text-[9px] font-bold uppercase"><Plus size={12} /> Lançar</button>
+                      </div>
                       <p className="text-3xl font-black text-slate-800 mb-2">{formatMoeda(proximaFatura)}</p>
                       <div className="bg-rose-50 text-rose-600 p-3 rounded-2xl border border-rose-100/50">
                         <p className="text-[10px] font-bold uppercase leading-tight italic">Provisionar esse valor para o vencimento do seu cartão.</p>
@@ -1041,12 +1060,23 @@ const App: React.FC = () => {
                   <div className="lg:col-span-4 bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm flex flex-col">
                     <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase mb-6 sm:mb-8 flex items-center gap-3"><Receipt size={18} className="text-rose-500 sm:size-[20px]" /> Gastos Fixos</h2>
                     <div className="space-y-2 sm:space-y-3 flex-1 max-h-[240px] sm:max-h-[280px] overflow-y-auto custom-scrollbar pr-2">
-                      {gastosFixos.map(g => (
-                        <div key={g.id} className="flex justify-between items-center p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-100">
-                          <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase">{g.nome}</span>
-                          <span className="text-xs sm:text-sm font-extrabold text-slate-800">{formatMoeda(g.valor)}</span>
+                      {gastosFixosFiltrados.length > 0 ? (
+                        gastosFixosFiltrados.map(g => (
+                          <div key={g.id} className="flex justify-between items-center p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-100 group">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase">{g.nome}</span>
+                              <span className={`text-[7px] font-black w-fit px-1 rounded uppercase mt-0.5 ${g.mode === 'personal' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-500'}`}>
+                                {g.mode === 'personal' ? 'Pessoal' : 'Profissional'}
+                              </span>
+                            </div>
+                            <span className="text-xs sm:text-sm font-extrabold text-slate-800">{formatMoeda(g.valor)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-8 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">Nenhum gasto fixo</p>
                         </div>
-                      ))}
+                      )}
                     </div>
                     <button onClick={() => setModalFixos(true)} className="mt-6 w-full py-3 sm:py-3.5 bg-slate-900 text-white rounded-xl text-[9px] sm:text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all">Configurar Fixos</button>
                   </div>
