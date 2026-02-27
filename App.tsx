@@ -704,7 +704,9 @@ const App: React.FC = () => {
                 {/* EVOLUÇÃO AND GASTOS GRID */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16">
                   <section className="bg-white p-4 sm:p-10 lg:p-14 rounded-2xl sm:rounded-3xl border border-slate-100 shadow-sm">
-                    <h3 className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8 sm:mb-12 pb-4 border-b border-slate-200">Evolução Mensal (Faturamento)</h3>
+                    <h3 className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-8 sm:mb-12 pb-4 border-b border-slate-200">
+                      {projectMode === 'business' ? 'Evolução Mensal (Faturamento)' : 'Evolução da Receita'}
+                    </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       {analyticsData.historicoMensal.filter(h => h.faturamento > 0).slice(-4).map((h, idx, filteredArr) => {
                         const prev = filteredArr[idx - 1];
@@ -849,50 +851,52 @@ const App: React.FC = () => {
                 </section>
 
                 {/* Seção Agenda de Hoje */}
-                <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 border border-slate-100 shadow-sm">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3"><div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg text-indigo-500"><Calendar size={18} className="sm:size-[20px]" /></div>Agenda de Hoje</h2>
-                    <button onClick={() => setCurrentView('agenda')} className="text-[9px] sm:text-[10px] font-bold text-indigo-500 uppercase tracking-widest hover:underline">Ver Completa</button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {agendamentos.filter(a => {
-                      const today = new Date().toISOString().split('T')[0];
-                      const agDate = new Date(a.dataInicio).toISOString().split('T')[0];
-                      return agDate === today;
-                    }).sort((a, b) => new Date(a.dataInicio).getTime() - new Date(b.dataInicio).getTime()).map(ag => (
-                      <div
-                        key={ag.id}
-                        onClick={() => handleUpdateAgendamento({
-                          ...ag,
-                          status: (ag.status === 'Agendado' || !ag.status) ? 'Atendido' : ag.status === 'Atendido' ? 'Cancelado' : 'Agendado'
-                        })}
-                        className={`flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50 hover:shadow-md transition-all cursor-pointer group ${ag.status === 'Cancelado' ? 'opacity-50 grayscale' : ''}`}
-                      >
-                        <div className="p-3 bg-white rounded-lg text-slate-900 font-black text-xs border border-slate-100 shadow-sm flex flex-col items-center">
-                          {new Date(ag.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                {projectMode === 'business' && (
+                  <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 border border-slate-100 shadow-sm">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3"><div className="p-1.5 sm:p-2 bg-indigo-50 rounded-lg text-indigo-500"><Calendar size={18} className="sm:size-[20px]" /></div>Agenda de Hoje</h2>
+                      <button onClick={() => setCurrentView('agenda')} className="text-[9px] sm:text-[10px] font-bold text-indigo-500 uppercase tracking-widest hover:underline">Ver Completa</button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {agendamentos.filter(a => {
+                        const today = new Date().toISOString().split('T')[0];
+                        const agDate = new Date(a.dataInicio).toISOString().split('T')[0];
+                        return agDate === today;
+                      }).sort((a, b) => new Date(a.dataInicio).getTime() - new Date(b.dataInicio).getTime()).map(ag => (
+                        <div
+                          key={ag.id}
+                          onClick={() => handleUpdateAgendamento({
+                            ...ag,
+                            status: (ag.status === 'Agendado' || !ag.status) ? 'Atendido' : ag.status === 'Atendido' ? 'Cancelado' : 'Agendado'
+                          })}
+                          className={`flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-slate-50 hover:shadow-md transition-all cursor-pointer group ${ag.status === 'Cancelado' ? 'opacity-50 grayscale' : ''}`}
+                        >
+                          <div className="p-3 bg-white rounded-lg text-slate-900 font-black text-xs border border-slate-100 shadow-sm flex flex-col items-center">
+                            {new Date(ag.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-slate-800 text-sm truncate uppercase">{ag.cliente}</p>
+                            <p className="text-xs text-slate-400 font-semibold truncate">{ag.servico}</p>
+                          </div>
+                          <div className="flex flex-col items-end min-w-[70px]">
+                            {ag.status === 'Atendido' || (ag.formaPagamento && (!ag.status || ag.status === 'Agendado')) ? (
+                              <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-bold uppercase tracking-wide">ATENDIDO</span>
+                            ) : ag.status === 'Cancelado' ? (
+                              <span className="px-2 py-1 rounded-full bg-rose-100 text-rose-600 text-[10px] font-bold uppercase tracking-wide">CANCELADO</span>
+                            ) : (
+                              <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold uppercase tracking-wide">AGENDADO</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-bold text-slate-800 text-sm truncate uppercase">{ag.cliente}</p>
-                          <p className="text-xs text-slate-400 font-semibold truncate">{ag.servico}</p>
+                      ))}
+                      {agendamentos.filter(a => new Date(a.dataInicio).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]).length === 0 && (
+                        <div className="col-span-full py-8 text-center text-slate-400 font-bold text-xs uppercase tracking-widest bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                          Nenhum cliente agendado para hoje (ainda!)
                         </div>
-                        <div className="flex flex-col items-end min-w-[70px]">
-                          {ag.status === 'Atendido' || (ag.formaPagamento && (!ag.status || ag.status === 'Agendado')) ? (
-                            <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-bold uppercase tracking-wide">ATENDIDO</span>
-                          ) : ag.status === 'Cancelado' ? (
-                            <span className="px-2 py-1 rounded-full bg-rose-100 text-rose-600 text-[10px] font-bold uppercase tracking-wide">CANCELADO</span>
-                          ) : (
-                            <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-600 text-[10px] font-bold uppercase tracking-wide">AGENDADO</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {agendamentos.filter(a => new Date(a.dataInicio).toISOString().split('T')[0] === new Date().toISOString().split('T')[0]).length === 0 && (
-                      <div className="col-span-full py-8 text-center text-slate-400 font-bold text-xs uppercase tracking-widest bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        Nenhum cliente agendado para hoje (ainda!)
-                      </div>
-                    )}
-                  </div>
-                </section>
+                      )}
+                    </div>
+                  </section>
+                )}
 
                 <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border border-slate-100 shadow-sm">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 sm:mb-10 gap-6">
@@ -1047,29 +1051,36 @@ const App: React.FC = () => {
                         <div className="flex justify-between items-center mb-4">
                           <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><LucidePieChart size={14} className="text-pink-500" /> Distribuição de Gastos</h2>
                         </div>
-                        <div className="flex-1 min-h-[220px]">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={analyticsData.despesasPorCategoria}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                              >
-                                {analyticsData.despesasPorCategoria.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][index % 6]} />
-                                ))}
-                              </Pie>
-                              <Tooltip
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
-                                formatter={(value: number) => formatMoeda(value)}
-                              />
-                              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '9px', fontWeight: 'black', textTransform: 'uppercase' }} />
-                            </PieChart>
-                          </ResponsiveContainer>
+                        <div className="flex-1 min-h-[220px] flex items-center justify-center">
+                          {analyticsData.despesasPorCategoria.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={analyticsData.despesasPorCategoria}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={60}
+                                  outerRadius={80}
+                                  paddingAngle={5}
+                                  dataKey="value"
+                                >
+                                  {analyticsData.despesasPorCategoria.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][index % 6]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip
+                                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                                  formatter={(value: number) => formatMoeda(value)}
+                                />
+                                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '9px', fontWeight: 'black', textTransform: 'uppercase' }} />
+                              </PieChart>
+                            </ResponsiveContainer>
+                          ) : (
+                            <div className="text-center space-y-2">
+                              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum gasto lançado</p>
+                              <p className="text-[8px] text-slate-400 font-medium italic">Lance uma despesa para ver o gráfico</p>
+                            </div>
+                          )}
                         </div>
                       </section>
 
