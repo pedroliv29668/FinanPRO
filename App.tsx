@@ -69,6 +69,8 @@ const App: React.FC = () => {
   const [anoAtual] = useState(new Date().getFullYear());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'reports' | 'agenda' | 'clientes' | 'marketing'>('dashboard');
+  const [projectMode, setProjectMode] = useState<'business' | 'personal'>(() => getSaved('projectMode', 'business'));
+
 
   const [modalMetas, setModalMetas] = useState(false);
   const [modalFixos, setModalFixos] = useState(false);
@@ -231,6 +233,7 @@ const App: React.FC = () => {
             if (p.projecaoSelecionada !== undefined) setProjecaoSelecionada(p.projecaoSelecionada);
             if (p.agendamentos) setAgendamentos(p.agendamentos);
             if (p.clientes) setClientes(p.clientes);
+            if (p.projectMode) setProjectMode(p.projectMode);
 
             // Sanitização de dados legados (garantir mes/ano)
             setReceitas(prev => prev.map(r => {
@@ -924,36 +927,38 @@ const App: React.FC = () => {
                     </div>
                   </section>
 
-                  <div className="xl:col-span-5 flex flex-col gap-4 sm:gap-6">
-                    <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1">
-                      <div className="flex justify-between items-center mb-4 sm:mb-5">
-                        <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><Star size={14} className="text-indigo-500" /> Procedimentos Top</h2>
-                        <button onClick={() => setModalNovoServico(true)} className="p-1.5 bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-500 transition-all"><Plus size={12} /></button>
-                      </div>
-                      <div className="space-y-1.5">
-                        {topServicos.map(([nome, valor], i) => (
-                          <div key={i} className="flex justify-between items-center p-2.5 sm:p-3 bg-slate-50/50 rounded-xl border border-slate-100/50 hover:bg-white transition-all">
-                            <div className="flex items-center gap-2 sm:gap-3 shrink-0"><span className="text-[9px] font-bold text-slate-300">#{i + 1}</span><span className="text-[10px] font-bold text-slate-600 uppercase truncate max-w-[120px] sm:max-w-[140px]">{nome}</span></div>
-                            <span className="text-[10px] sm:text-[11px] font-extrabold text-indigo-600">{formatMoeda(valor as number)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
+                  {projectMode === 'business' && (
+                    <div className="xl:col-span-5 flex flex-col gap-4 sm:gap-6">
+                      <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1">
+                        <div className="flex justify-between items-center mb-4 sm:mb-5">
+                          <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><Star size={14} className="text-indigo-500" /> Procedimentos Top</h2>
+                          <button onClick={() => setModalNovoServico(true)} className="p-1.5 bg-slate-50 rounded-lg text-slate-400 hover:text-indigo-500 transition-all"><Plus size={12} /></button>
+                        </div>
+                        <div className="space-y-1.5">
+                          {topServicos.map(([nome, valor], i) => (
+                            <div key={i} className="flex justify-between items-center p-2.5 sm:p-3 bg-slate-50/50 rounded-xl border border-slate-100/50 hover:bg-white transition-all">
+                              <div className="flex items-center gap-2 sm:gap-3 shrink-0"><span className="text-[9px] font-bold text-slate-300">#{i + 1}</span><span className="text-[10px] font-bold text-slate-600 uppercase truncate max-w-[120px] sm:max-w-[140px]">{nome}</span></div>
+                              <span className="text-[10px] sm:text-[11px] font-extrabold text-indigo-600">{formatMoeda(valor as number)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
 
-                    <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1">
-                      <div className="flex justify-between items-center mb-4 sm:mb-5">
-                        <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><Users size={14} className="text-amber-500" /> Clientes VIP</h2>
-                      </div>
-                      <div className="space-y-1.5">
-                        {topClientes.map(([nome, valor], i) => (
-                          <div key={i} className="flex justify-between items-center p-2.5 sm:p-3 bg-slate-50/50 rounded-xl border border-slate-100/50 hover:bg-white transition-all">
-                            <div className="flex items-center gap-2 sm:gap-3 shrink-0"><span className="text-[9px] font-bold text-slate-300">#{i + 1}</span><span className="text-[10px] font-bold text-slate-600 uppercase truncate max-w-[120px] sm:max-w-[140px]">{nome}</span></div>
-                            <span className="text-[10px] sm:text-[11px] font-extrabold text-amber-600">{formatMoeda(valor as number)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  </div>
+                      <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1">
+                        <div className="flex justify-between items-center mb-4 sm:mb-5">
+                          <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><Users size={14} className="text-amber-500" /> Clientes VIP</h2>
+                        </div>
+                        <div className="space-y-1.5">
+                          {topClientes.map(([nome, valor], i) => (
+                            <div key={i} className="flex justify-between items-center p-2.5 sm:p-3 bg-slate-50/50 rounded-xl border border-slate-100/50 hover:bg-white transition-all">
+                              <div className="flex items-center gap-2 sm:gap-3 shrink-0"><span className="text-[9px] font-bold text-slate-300">#{i + 1}</span><span className="text-[10px] font-bold text-slate-600 uppercase truncate max-w-[120px] sm:max-w-[140px]">{nome}</span></div>
+                              <span className="text-[10px] sm:text-[11px] font-extrabold text-amber-600">{formatMoeda(valor as number)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-stretch">
@@ -971,16 +976,37 @@ const App: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" id="section-lancamentos">
                   <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 transition-transform"><Plus size={80} /></div>
-                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10"><Plus size={16} className="text-emerald-500" /> Lançar Receita</h3>
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10">
+                      <Plus size={16} className="text-emerald-500" />
+                      {projectMode === 'business' ? 'Lançar Receita' : 'Lançar Entrada'}
+                    </h3>
                     <form onSubmit={handleAddReceita} className="space-y-3 relative z-10">
                       <div className="grid grid-cols-2 gap-3">
                         <input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
-                        <input type="text" placeholder="CLIENTE" value={formReceita.cliente} onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                        <input
+                          type="text"
+                          placeholder={projectMode === 'business' ? 'CLIENTE' : 'ORIGEM / DESCRIÇÃO'}
+                          value={formReceita.cliente}
+                          onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value.toUpperCase() })}
+                          className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase"
+                          required
+                        />
                       </div>
-                      <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required>
-                        <option value="">Selecione o Procedimento...</option>
-                        {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}
-                      </select>
+                      {projectMode === 'business' ? (
+                        <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required>
+                          <option value="">Selecione o Procedimento...</option>
+                          {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder="CATEGORIA (EX: SALÁRIO, VENDA)"
+                          value={formReceita.procedimento}
+                          onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value.toUpperCase() })}
+                          className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase"
+                          required
+                        />
+                      )}
                       <div className="grid grid-cols-2 gap-3">
                         <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
                         <div className="flex gap-1.5">
@@ -995,11 +1021,14 @@ const App: React.FC = () => {
 
                   <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 transition-transform"><TrendingDown size={80} /></div>
-                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10"><TrendingDown size={16} className="text-rose-500" /> Lançar Despesa</h3>
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10">
+                      <TrendingDown size={16} className="text-rose-500" />
+                      {projectMode === 'business' ? 'Lançar Despesa' : 'Lançar Saída'}
+                    </h3>
                     <form onSubmit={handleAddDespesa} className="space-y-3 relative z-10">
                       <div className="grid grid-cols-2 gap-3">
                         <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
-                        <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                        <input type="text" placeholder={projectMode === 'business' ? 'DESCRIÇÃO' : 'CATEGORIA'} value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
@@ -1013,6 +1042,7 @@ const App: React.FC = () => {
                     </form>
                   </section>
                 </div>
+
 
                 <section className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-100 shadow-sm animate-fadeIn">
                   <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase tracking-widest flex items-center gap-3 mb-6">
@@ -1112,11 +1142,13 @@ const App: React.FC = () => {
                       <div className="flex items-end gap-3 mb-6"><span className="text-3xl font-black text-emerald-600 tracking-tighter">92%</span><span className="text-[10px] font-bold text-slate-300 uppercase mb-1.5">Probabilidade</span></div>
                       <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">Com base no ritmo atual, você atingirá o faturamento alvo em 24 dias.</p>
                     </div>
-                    <div className="p-8 bg-slate-50/50 rounded-3xl border border-slate-100/50 hover:bg-white transition-all">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Top Produto</p>
-                      <div className="flex items-center gap-4 mb-6"><div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-amber-500"><Trophy size={20} /></div><div className="min-w-0"><p className="text-sm font-black text-slate-800 uppercase truncate">Limpeza</p></div></div>
-                      <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">Este serviço representa 42% da sua receita total do mês.</p>
-                    </div>
+                    {projectMode === 'business' && (
+                      <div className="p-8 bg-slate-50/50 rounded-3xl border border-slate-100/50 hover:bg-white transition-all">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Top Produto</p>
+                        <div className="flex items-center gap-4 mb-6"><div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-amber-500"><Trophy size={20} /></div><div className="min-w-0"><p className="text-sm font-black text-slate-800 uppercase truncate">{topServicos[0]?.[0] || 'Nenhum'}</p></div></div>
+                        <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">Este serviço representa a maior parte da sua receita este mês.</p>
+                      </div>
+                    )}
                     <div className="p-8 bg-slate-900 rounded-3xl border border-slate-800 shadow-xl group overflow-hidden relative">
                       <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform"><Target size={80} /></div>
                       <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4 relative z-10">Dica Estratégica</p>
@@ -1415,18 +1447,45 @@ const App: React.FC = () => {
 
         {isSidebarOpen && (
           <div className="fixed inset-0 z-[400] bg-slate-950/40 backdrop-blur-sm animate-fadeIn" onClick={() => setIsSidebarOpen(false)}>
-            <div className="absolute left-0 top-0 bottom-0 w-[260px] sm:w-[280px] bg-white p-6 sm:p-10 shadow-2xl flex flex-col border-r border-slate-100 animate-fadeInLeft" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-10 sm:mb-14">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white"><Activity size={20} className="sm:size-[24px]" /></div>
-                <button onClick={() => setIsSidebarOpen(false)} className="text-slate-400 hover:text-slate-900 transition-all"><X size={20} /></button>
+            <div className="absolute left-0 top-0 bottom-0 w-[260px] sm:w-[280px] bg-white p-6 sm:p-8 shadow-2xl flex flex-col border-r border-slate-100 animate-fadeInLeft" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-6 sm:mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white"><Activity size={18} /></div>
+                  <span className="font-outfit font-black text-slate-900 text-sm tracking-tighter uppercase">{appName}</span>
+                </div>
+                <button onClick={() => setIsSidebarOpen(false)} className="text-slate-300 hover:text-slate-900 transition-all"><X size={20} /></button>
               </div>
-              <nav className="space-y-3 sm:space-y-4 flex-1">
-                <button onClick={() => { setCurrentView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'dashboard' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'dashboard' ? appColor : 'transparent' }}><LayoutDashboard size={18} className="sm:size-[20px]" /> Overview</button>
-                <button onClick={() => { setCurrentView('agenda'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'agenda' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'agenda' ? appColor : 'transparent' }}><Calendar size={18} className="sm:size-[20px]" /> Agenda</button>
-                <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart size={18} className="sm:size-[20px]" /> Analytics</button>
-                <button onClick={() => { setCurrentView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} className="sm:size-[20px]" /> Clientes</button>
-                <button onClick={() => { setCurrentView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} className="sm:size-[20px]" /> Marketing</button>
-                <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} className="sm:size-[20px]" /> Estilo</button>
+
+              {/* MODE TOGGLE */}
+              <div className="mb-8 p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-100 shadow-inner">
+                <button
+                  onClick={() => { setProjectMode('business'); localStorage.setItem('projectMode', 'business'); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${projectMode === 'business' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  <Users size={12} /> Profissional
+                </button>
+                <button
+                  onClick={() => { setProjectMode('personal'); localStorage.setItem('projectMode', 'personal'); setCurrentView('dashboard'); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${projectMode === 'personal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  <Star size={12} /> Pessoal
+                </button>
+              </div>
+
+              <nav className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
+                <button onClick={() => { setCurrentView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'dashboard' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'dashboard' ? appColor : 'transparent' }}><LayoutDashboard size={18} /> Overview</button>
+
+                {projectMode === 'business' && (
+                  <>
+                    <button onClick={() => { setCurrentView('agenda'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'agenda' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'agenda' ? appColor : 'transparent' }}><Calendar size={18} /> Agenda</button>
+                    <button onClick={() => { setCurrentView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} /> Clientes</button>
+                    <button onClick={() => { setCurrentView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} /> Marketing</button>
+                  </>
+                )}
+
+                <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart size={18} /> Analytics</button>
+                <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} /> Estilo</button>
+
                 <div className="pt-4 mt-4 border-t border-slate-50 px-2">
                   <button
                     onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
@@ -1439,8 +1498,8 @@ const App: React.FC = () => {
                     <ChevronRight size={14} className="opacity-50" />
                   </button>
                 </div>
-                <div className="pt-6 sm:pt-10 border-t mt-6 sm:mt-10">
-                  <button onClick={() => { handleLogout(); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 text-rose-500 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-50 transition-all"><Lock size={18} className="sm:size-[20px]" /> Sair</button>
+                <div className="pt-6 border-t mt-6">
+                  <button onClick={() => { handleLogout(); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 text-rose-500 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-50 transition-all"><Lock size={18} /> Sair</button>
                 </div>
               </nav>
             </div>
