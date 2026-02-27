@@ -535,9 +535,14 @@ const App: React.FC = () => {
             <header className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-8 bg-white/70 backdrop-blur-md sticky top-2 sm:top-4 z-[100] px-3 sm:px-6 py-3 sm:py-3 rounded-2xl border border-white shadow-sm transition-all gap-3 sm:gap-0">
               <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                 <button onClick={() => setIsSidebarOpen(true)} className="p-2 sm:p-2.5 text-slate-600 hover:bg-slate-50 rounded-xl transition-all active:scale-95"><Menu size={20} /></button>
-                <div className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
-                  <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: appColor }}></div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{currentView === 'dashboard' ? 'Overview' : currentView === 'agenda' ? 'Agenda' : currentView === 'clientes' ? 'Clientes' : currentView === 'marketing' ? 'Marketing' : 'Analytics'}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 rounded-full border border-slate-100">
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: appColor }}></div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{currentView === 'dashboard' ? 'Overview' : currentView === 'agenda' ? 'Agenda' : currentView === 'clientes' ? 'Clientes' : currentView === 'marketing' ? 'Marketing' : 'Analytics'}</span>
+                  </div>
+                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md self-start sm:self-auto ${projectMode === 'business' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-pink-50 text-pink-600 border border-pink-100'}`}>
+                    {projectMode === 'business' ? 'Modo Profissional' : 'Modo Pessoal'}
+                  </span>
                 </div>
               </div>
 
@@ -747,7 +752,7 @@ const App: React.FC = () => {
             {currentView === 'dashboard' && (
               <main className="animate-fadeIn space-y-8 sm:space-y-10 lg:space-y-14">
                 {/* Banner de Lembrete de Amanhã */}
-                {agendamentosAmanha.length > 0 && (
+                {projectMode === 'business' && agendamentosAmanha.length > 0 && (
                   <div className="bg-slate-900 p-5 rounded-2xl sm:rounded-3xl flex items-center justify-between text-white shadow-xl border border-white/10 overflow-hidden relative group transition-all hover:scale-[1.01]">
                     <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><Bell size={80} /></div>
                     <div className="flex items-center gap-4 sm:gap-6 relative z-10">
