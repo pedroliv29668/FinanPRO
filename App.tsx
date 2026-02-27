@@ -42,7 +42,7 @@ interface SonhoExpandido extends Sonho {
 }
 
 const CATEGORIAS_PESSOAIS = [
-  'ALIMENTAÇÃO', 'MORADIA', 'TRANSPORTE', 'SAÚDE', 'ESTILO DE VIDA', 'LAZER', 'COMPRAS', 'INVESTIMENTOS', 'OUTROS'
+  'ALIMENTAÇÃO', 'MORADIA', 'TRANSPORTE', 'SAÚDE', 'ESTILO DE VIDA', 'LAZER', 'COMPRAS', 'INVESTIMENTOS', 'EDUCAÇÃO', 'PETS', 'DÍVIDAS', 'RESERVA', 'OUTROS'
 ];
 
 const CATEGORIAS_RECEITA_PESSOAL = [
@@ -143,6 +143,8 @@ const App: React.FC = () => {
   });
 
   const [reservaEmergencia, setReservaEmergencia] = useState<number>(() => getSaved('reservaEmergencia', 0));
+  const [orcamentos, setOrcamentos] = useState<Orcamentos>(() => getSaved('orcamentos', {}));
+  const [modalOrcamentos, setModalOrcamentos] = useState(false);
   const [modalReserva, setModalReserva] = useState(false);
   const [inputAportes, setInputAportes] = useState<Record<number, string>>({});
 
@@ -284,6 +286,7 @@ const App: React.FC = () => {
             if (p.agendamentos) setAgendamentos(p.agendamentos);
             if (p.clientes) setClientes(p.clientes);
             if (p.projectMode) setProjectMode(p.projectMode);
+            if (p.orcamentos) setOrcamentos(p.orcamentos);
             if (p.reservaEmergencia !== undefined) setReservaEmergencia(p.reservaEmergencia);
 
             // Sanitização de dados legados (garantir mes/ano e modo default)
@@ -422,13 +425,15 @@ const App: React.FC = () => {
     localStorage.setItem('projecaoSelecionada', JSON.stringify(projecaoSelecionada));
     localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
     localStorage.setItem('clientes', JSON.stringify(clientes));
+    localStorage.setItem('orcamentos', JSON.stringify(orcamentos));
 
     if (isAuthenticated && hasLoadedData) {
       const syncWithSupabase = async () => {
         const payload = {
           receitas, despesasVariaveis, sonhos, metas, servicos,
           appName, appColor, gastosFixos, projecaoSelecionada,
-          agendamentos, clientes, projectMode, reservaEmergencia
+          agendamentos, clientes, projectMode, reservaEmergencia,
+          orcamentos
         };
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -438,7 +443,7 @@ const App: React.FC = () => {
       const timeoutId = setTimeout(syncWithSupabase, 1000);
       return () => clearTimeout(timeoutId);
     }
-  }, [receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes, isAuthenticated, hasLoadedData]);
+  }, [receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes, isAuthenticated, hasLoadedData, orcamentos]);
 
   const handleAddAgendamento = (ag: Omit<Agendamento, 'id'>) => {
     setAgendamentos(prev => [...prev, { ...ag, id: Date.now() }]);
@@ -903,7 +908,6 @@ const App: React.FC = () => {
                         </div>
                       </div>
                     </div>
-
                     {/* Dinheiro Livre */}
                     <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col justify-center text-center relative overflow-hidden transition-all hover:scale-[1.02]">
                       <div className={`absolute left-0 top-0 w-1.5 h-full ${dinheiroLivre >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
@@ -914,6 +918,34 @@ const App: React.FC = () => {
                           {dinheiroLivre >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                         </div>
                         <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Cálculo após todas as contas</span>
+                      </div>
+                    </div>
+
+                    {/* Próximos Vencimentos */}
+                    <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 relative overflow-hidden group">
+                      <div className="absolute right-0 bottom-0 p-4 opacity-5 group-hover:scale-110 transition-all"><Clock size={100} /></div>
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><Clock size={16} className="text-amber-500" /> Vencimentos Próximos</p>
+                      </div>
+                      <div className="space-y-2">
+                        {gastosFixosFiltrados.filter(g => {
+                          if (!g.vencimento) return false;
+                          const hoje = new Date().getDate();
+                          return g.vencimento >= hoje && g.vencimento <= hoje + 7;
+                        }).sort((a, b) => (a.vencimento || 0) - (b.vencimento || 0)).slice(0, 2).map(g => (
+                          <div key={g.id} className="flex justify-between items-center p-2.5 bg-slate-50 rounded-xl border border-slate-100 transition-all hover:bg-white">
+                            <div>
+                              <p className="text-[10px] font-black text-slate-800 uppercase leading-tight">{g.nome}</p>
+                              <p className="text-[8px] font-bold text-amber-500 uppercase">Vence dia {g.vencimento}</p>
+                            </div>
+                            <span className="text-xs font-black text-slate-600">{formatMoeda(g.valor)}</span>
+                          </div>
+                        ))}
+                        {gastosFixosFiltrados.filter(g => g.vencimento && g.vencimento >= new Date().getDate() && g.vencimento <= new Date().getDate() + 7).length === 0 && (
+                          <div className="py-4 text-center">
+                            <p className="text-[9px] font-bold text-slate-300 uppercase italic">Tudo em dia!</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1097,9 +1129,16 @@ const App: React.FC = () => {
                             <div className="flex justify-between items-start mb-1 pr-6">
                               <p className="text-xs sm:text-sm font-extrabold text-slate-800 uppercase leading-tight">{s.nome}</p>
                             </div>
-                            <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase">
-                              <Target size={12} />
-                              <span>Meta: {meses[s.prazoMes]} / {s.prazoAno}</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase">
+                                <Target size={12} />
+                                <span>Meta: {meses[s.prazoMes]} / {s.prazoAno}</span>
+                              </div>
+                              {dinheiroLivre > 0 && (
+                                <div className="text-[9px] font-black text-indigo-500 uppercase tracking-tighter bg-indigo-50 px-2 py-0.5 rounded">
+                                  {Math.ceil((s.valorTotal - s.juntado) / dinheiroLivre) <= (s.prazoAno * 12 + s.prazoMes - (new Date().getFullYear() * 12 + new Date().getMonth())) ? 'No Prazo ✅' : 'Precisa de + R$'}
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -1177,24 +1216,30 @@ const App: React.FC = () => {
                               const totalGeralDespesas = analyticsData.despesasPorCategoria.reduce((acc, curr) => acc + curr.value, 0);
                               const percent = (cat.value / (totalGeralDespesas || 1)) * 100;
                               const colors = ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+                              const orcado = orcamentos[cat.name];
+                              const isOverBudget = orcado && cat.value > orcado;
+                              const isNearBudget = orcado && cat.value > orcado * 0.8;
 
                               return (
                                 <div key={i} className="animate-fadeInLeft" style={{ animationDelay: `${i * 100}ms` }}>
                                   <div className="flex justify-between items-end mb-2">
                                     <div className="flex items-center gap-3">
-                                      <div className="p-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-100 font-black text-[9px]">#{i + 1}</div>
-                                      <span className="text-[11px] font-black text-slate-700 uppercase tracking-tight">{cat.name}</span>
+                                      <div className={`p-2 rounded-lg ${isOverBudget ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-600'} border border-slate-100 font-black text-[9px]`}>#{i + 1}</div>
+                                      <div className="flex flex-col">
+                                        <span className={`text-[11px] font-black uppercase tracking-tight ${isOverBudget ? 'text-rose-600' : 'text-slate-700'}`}>{cat.name}</span>
+                                        {orcado > 0 && <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Budget: {formatMoeda(orcado)}</span>}
+                                      </div>
                                     </div>
-                                    <span className="text-[11px] font-black text-slate-900">{formatMoeda(cat.value)}</span>
+                                    <div className="flex flex-col items-end">
+                                      <span className={`text-[11px] font-black ${isOverBudget ? 'text-rose-600' : 'text-slate-900'}`}>{formatMoeda(cat.value)}</span>
+                                      {isOverBudget && <span className="text-[7px] font-black bg-rose-500 text-white px-1 rounded animate-pulse">LIMITE EXCEDIDO</span>}
+                                    </div>
                                   </div>
                                   <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5">
                                     <div
                                       className="h-full rounded-full transition-all duration-1000 shadow-sm hover:brightness-110"
-                                      style={{ width: `${percent}%`, backgroundColor: colors[i % colors.length] }}
+                                      style={{ width: `${percent}%`, backgroundColor: isOverBudget ? '#f43f5e' : isNearBudget ? '#f59e0b' : colors[i % colors.length] }}
                                     ></div>
-                                  </div>
-                                  <div className="flex justify-end mt-1">
-                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{percent.toFixed(0)}% do total</span>
                                   </div>
                                 </div>
                               );
@@ -1204,11 +1249,14 @@ const App: React.FC = () => {
                               <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 border border-dashed border-slate-200"><ShoppingBag size={30} /></div>
                               <div>
                                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Sem gastos registrados</p>
-                                <p className="text-[9px] text-slate-300 font-medium italic mt-1">Adicione despeser para ver seu ranking</p>
+                                <p className="text-[9px] text-slate-300 font-medium italic mt-1">Adicione despesas para ver seu ranking</p>
                               </div>
                             </div>
                           )}
                         </div>
+                        {projectMode === 'personal' && (
+                          <button onClick={() => setModalOrcamentos(true)} className="mt-8 w-full py-4 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-indigo-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-100 transition-all flex items-center justify-center gap-3"><Settings size={16} /> Definir Metas de Orçamento</button>
+                        )}
                       </section>
 
                       <section className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl sm:rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
@@ -1449,451 +1497,507 @@ const App: React.FC = () => {
               </main>
             )}
           </div>
-        )}
+        )
+        }
 
         {/* MODALS UNIFICADOS */}
         {/* MODALS AND SIDEBAR */}
-        {[
-          {
-            isOpen: modalMetas, setOpen: setModalMetas, title: 'Definir Metas', content: (
-              <div className="space-y-4 sm:space-y-6">
-                {[
-                  { label: 'Faturamento Alvo', key: 'faturamento' as keyof MetasFinanceiras },
-                  { label: 'Gasto Fixo Limite', key: 'gastosFixos' as keyof MetasFinanceiras },
-                  { label: 'Lucro Desejado', key: 'lucroLiquido' as keyof MetasFinanceiras },
-                  { label: 'Margem %', key: 'margemDesejada' as keyof MetasFinanceiras }
-                ].map((m, i) => (
-                  <div key={i}>
-                    <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-400 ml-1 mb-2 block">{m.label}</label>
-                    <input
-                      type="number"
-                      value={metas[m.key]}
-                      onChange={e => setMetas(prev => ({ ...prev, [m.key]: parseFloat(e.target.value) || 0 }))}
-                      className="w-full bg-slate-50 p-3 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm"
-                    />
-                  </div>
-                ))}
-                <button onClick={() => setModalMetas(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest mt-4 sm:mt-6" style={{ backgroundColor: appColor }}>Salvar Alterações</button>
-              </div>
-            )
-          },
-          {
-            isOpen: modalFixos, setOpen: setModalFixos, title: 'Gastos Fixos', content: (
-              <div className="space-y-6 sm:space-y-8">
-                <div className="space-y-4">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gastos Cadastrados</p>
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {gastosFixosFiltrados.length > 0 ? (
-                      gastosFixosFiltrados.map((g, idx) => (
-                        <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
-                          <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                              <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
-                              <span className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${g.mode === 'personal' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>
-                                {g.mode === 'personal' ? 'Pessoal' : 'Profissional'}
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
-                              className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                          <input
-                            type="number"
-                            value={g.valor}
-                            onChange={e => setGastosFixos(prev => prev.map((item) => item.id === g.id ? { ...item, valor: parseFloat(e.target.value) || 0 } : item))}
-                            className="w-full bg-white p-2.5 rounded-lg font-bold border border-slate-200 outline-none text-sm"
-                          />
-                        </div>
-                      ))
-                    ) : (
-                      <div className="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 space-y-4">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Nenhum gasto fixo cadastrado para este modo</p>
-                        <button
-                          onClick={() => {
-                            const defaults = [
-                              { id: 'p1' + Date.now(), nome: 'ALUGUEL', valor: 0, isPadrao: true, mode: projectMode },
-                              { id: 'p2' + Date.now(), nome: 'LUZ / ÁGUA', valor: 0, isPadrao: true, mode: projectMode },
-                              { id: 'p3' + Date.now(), nome: 'INTERNET', valor: 0, isPadrao: true, mode: projectMode }
-                            ];
-                            setGastosFixos(prev => [...prev, ...defaults]);
-                          }}
-                          className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-indigo-100 transition-all"
-                        >
-                          + Adicionar Sugestões Base
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-4">Adicionar Novo Gasto Fixo</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Nome do Gasto</label>
-                      <input
-                        type="text"
-                        value={formNovoGastoFixo.nome}
-                        onChange={e => setFormNovoGastoFixo({ ...formNovoGastoFixo, nome: e.target.value.toUpperCase() })}
-                        className="w-full bg-slate-50 p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase"
-                        placeholder="Ex: Aluguel"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Valor (R$)</label>
+        {
+          [
+            {
+              isOpen: modalMetas, setOpen: setModalMetas, title: 'Definir Metas', content: (
+                <div className="space-y-4 sm:space-y-6">
+                  {[
+                    { label: 'Faturamento Alvo', key: 'faturamento' as keyof MetasFinanceiras },
+                    { label: 'Gasto Fixo Limite', key: 'gastosFixos' as keyof MetasFinanceiras },
+                    { label: 'Lucro Desejado', key: 'lucroLiquido' as keyof MetasFinanceiras },
+                    { label: 'Margem %', key: 'margemDesejada' as keyof MetasFinanceiras }
+                  ].map((m, i) => (
+                    <div key={i}>
+                      <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-400 ml-1 mb-2 block">{m.label}</label>
                       <input
                         type="number"
-                        value={formNovoGastoFixo.valor}
-                        onChange={e => setFormNovoGastoFixo({ ...formNovoGastoFixo, valor: e.target.value })}
-                        className="w-full bg-slate-50 p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm"
-                        placeholder="0,00"
+                        value={metas[m.key]}
+                        onChange={e => setMetas(prev => ({ ...prev, [m.key]: parseFloat(e.target.value) || 0 }))}
+                        className="w-full bg-slate-50 p-3 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm"
                       />
                     </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (!formNovoGastoFixo.nome) return;
-                      const novo: GastoFixo = {
-                        id: Date.now().toString(),
-                        nome: formNovoGastoFixo.nome,
-                        valor: parseFloat(formNovoGastoFixo.valor) || 0,
-                        isPadrao: false,
-                        mode: projectMode
-                      };
-                      setGastosFixos(prev => [...prev, novo]);
-                      setFormNovoGastoFixo({ nome: '', valor: '' });
-                    }}
-                    className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Plus size={14} /> Adicionar Gasto
-                  </button>
+                  ))}
+                  <button onClick={() => setModalMetas(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest mt-4 sm:mt-6" style={{ backgroundColor: appColor }}>Salvar Alterações</button>
                 </div>
+              )
+            },
+            {
+              isOpen: modalFixos, setOpen: setModalFixos, title: 'Gastos Fixos', content: (
+                <div className="space-y-6 sm:space-y-8">
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gastos Cadastrados</p>
+                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                      {gastosFixosFiltrados.length > 0 ? (
+                        gastosFixosFiltrados.map((g, idx) => (
+                          <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
+                            <div className="flex justify-between items-center mb-2">
+                              <div className="flex items-center gap-2">
+                                <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
+                                <span className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${g.mode === 'personal' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>
+                                  {g.mode === 'personal' ? 'Pessoal' : 'Profissional'}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
+                                className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="relative">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold uppercase">R$</span>
+                                <input
+                                  type="number"
+                                  value={g.valor}
+                                  onChange={e => setGastosFixos(prev => prev.map((item) => item.id === g.id ? { ...item, valor: parseFloat(e.target.value) || 0 } : item))}
+                                  className="w-full bg-white p-2.5 pl-6 rounded-lg font-bold border border-slate-200 outline-none text-sm text-slate-800"
+                                />
+                              </div>
+                              <div className="relative">
+                                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[7px] text-slate-300 font-black uppercase">Dia</span>
+                                <input
+                                  type="number"
+                                  placeholder="DIA VENC"
+                                  min="1"
+                                  max="31"
+                                  value={g.vencimento || ''}
+                                  onChange={e => setGastosFixos(prev => prev.map((item) => item.id === g.id ? { ...item, vencimento: parseInt(e.target.value) || 0 } : item))}
+                                  className="w-full bg-white p-2.5 pl-8 rounded-lg font-bold border border-slate-200 outline-none text-[10px] text-slate-600 uppercase"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 space-y-4">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Nenhum gasto fixo cadastrado para este modo</p>
+                          <button
+                            onClick={() => {
+                              const defaults = [
+                                { id: 'p1' + Date.now(), nome: 'ALUGUEL', valor: 0, isPadrao: true, mode: projectMode },
+                                { id: 'p2' + Date.now(), nome: 'LUZ / ÁGUA', valor: 0, isPadrao: true, mode: projectMode },
+                                { id: 'p3' + Date.now(), nome: 'INTERNET', valor: 0, isPadrao: true, mode: projectMode }
+                              ];
+                              setGastosFixos(prev => [...prev, ...defaults]);
+                            }}
+                            className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-indigo-100 transition-all"
+                          >
+                            + Adicionar Sugestões Base
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="pt-4">
-                  <button onClick={() => setModalFixos(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg" style={{ backgroundColor: appColor }}>Fechar e Salvar</button>
-                </div>
-              </div>
-            )
-          },
-          {
-            isOpen: modalSonhos, setOpen: setModalSonhos, title: 'Novo Alvo', content: (
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const fd = new FormData(e.currentTarget);
-                setSonhos((prev) => [...prev, {
-                  id: Date.now(),
-                  nome: fd.get('nome') as string,
-                  valorTotal: parseFloat(fd.get('total') as string) || 0,
-                  juntado: 0,
-                  prazoMes: parseInt(fd.get('mes') as string),
-                  prazoAno: parseInt(fd.get('ano') as string)
-                }]);
-                setModalSonhos(false);
-              }} className="space-y-4 sm:space-y-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Nome do Sonho</label>
-                    <input name="nome" placeholder="Ex: Viagem, Carro Novo..." required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Valor Total</label>
-                    <input name="total" type="number" step="0.01" placeholder="0,00" required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Mês Alvo</label>
-                      <select name="mes" required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase appearance-none cursor-pointer">
-                        <option value="">Selecione...</option>
-                        {meses.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                      </select>
+                  <div className="pt-6 border-t border-slate-100">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-4">Adicionar Novo Gasto Fixo</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Nome do Gasto</label>
+                        <input
+                          type="text"
+                          value={formNovoGastoFixo.nome}
+                          onChange={e => setFormNovoGastoFixo({ ...formNovoGastoFixo, nome: e.target.value.toUpperCase() })}
+                          className="w-full bg-slate-50 p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase"
+                          placeholder="Ex: Aluguel"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Valor (R$)</label>
+                        <input
+                          type="number"
+                          value={formNovoGastoFixo.valor}
+                          onChange={e => setFormNovoGastoFixo({ ...formNovoGastoFixo, valor: e.target.value })}
+                          className="w-full bg-slate-50 p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm"
+                          placeholder="0,00"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Ano Alvo</label>
-                      <input name="ano" type="number" placeholder={new Date().getFullYear().toString()} required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
-                    </div>
+                    <button
+                      onClick={() => {
+                        if (!formNovoGastoFixo.nome) return;
+                        const novo: GastoFixo = {
+                          id: Date.now().toString(),
+                          nome: formNovoGastoFixo.nome,
+                          valor: parseFloat(formNovoGastoFixo.valor) || 0,
+                          isPadrao: false,
+                          mode: projectMode
+                        };
+                        setGastosFixos(prev => [...prev, novo]);
+                        setFormNovoGastoFixo({ nome: '', valor: '' });
+                      }}
+                      className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Plus size={14} /> Adicionar Gasto
+                    </button>
+                  </div>
+
+                  <div className="pt-4">
+                    <button onClick={() => setModalFixos(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg" style={{ backgroundColor: appColor }}>Fechar e Salvar</button>
                   </div>
                 </div>
-                <button type="submit" className="w-full bg-slate-900 text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg hover:bg-slate-800 transition-all">Criar Objetivo</button>
-              </form>
-            )
-          },
-          {
-            isOpen: modalNovoServico, setOpen: setModalNovoServico, title: 'Gerenciar Serviços', content: (
-              <div className="space-y-6">
-                {/* Add New Service Form */}
+              )
+            },
+            {
+              isOpen: modalSonhos, setOpen: setModalSonhos, title: 'Novo Alvo', content: (
                 <form onSubmit={(e) => {
                   e.preventDefault();
                   const fd = new FormData(e.currentTarget);
-                  const nome = fd.get('nome') as string;
-                  const valor = parseFloat(fd.get('valor') as string) || 0;
-                  setServicos((prev) => [...prev, { id: Date.now().toString(), nome, valor }]);
-                  // Reset form
-                  e.currentTarget.reset();
-                }} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Adicionar Novo</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input name="nome" placeholder="Nome do Procedimento" required className="w-full bg-white p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase" />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
-                      <input name="valor" type="number" step="0.01" placeholder="0,00" required className="w-full bg-white p-3 pl-8 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
-                    </div>
-                  </div>
-                  <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"><Plus size={14} /> Adicionar</button>
-                </form>
-
-                {/* List of Services */}
-                <div className="space-y-3">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Cadastrados</p>
-                  <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2 pr-2">
-                    {servicos.map(s => (
-                      <div key={s.id} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-xl hover:shadow-sm transition-all group">
-                        <div>
-                          <p className="text-xs font-extrabold text-slate-800 uppercase">{s.nome}</p>
-                          <p className="text-[10px] font-bold text-emerald-500">{formatMoeda(s.valor)}</p>
-                        </div>
-                        <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => {
-                            const novoNome = prompt('Novo nome do serviço:', s.nome);
-                            const novoValor = prompt('Novo valor (R$):', s.valor.toString());
-                            if (novoNome && novoValor) {
-                              setServicos(prev => prev.map(item => item.id === s.id ? { ...item, nome: novoNome, valor: parseFloat(novoValor) || 0 } : item));
-                            }
-                          }} className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg"><Settings size={14} /></button>
-                          <button onClick={() => {
-                            if (confirm('Tem certeza que deseja remover este serviço?')) {
-                              setServicos(prev => prev.filter(item => item.id !== s.id));
-                            }
-                          }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 size={14} /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )
-          },
-          {
-            isOpen: modalConfig, setOpen: setModalConfig, title: 'Configurações', content: (
-              <div className="space-y-6 sm:space-y-8">
-                <div>
-                  <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-2 block">Modo de Uso</label>
-                  <div className="p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-100 shadow-inner">
-                    <button
-                      onClick={() => { setProjectMode('business'); localStorage.setItem('projectMode', 'business'); }}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${projectMode === 'business' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      <Users size={14} /> Profissional
-                    </button>
-                    <button
-                      onClick={() => { setProjectMode('personal'); localStorage.setItem('projectMode', 'personal'); setCurrentView('dashboard'); }}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${projectMode === 'personal' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      <Star size={14} /> Pessoal
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-2 block">Nome da Unidade</label>
-                  <input type="text" value={appName} onChange={e => setAppName(e.target.value)} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="Nome da Unidade" />
-                </div>
-
-                <div className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
-                  <input type="color" value={appColor} onChange={e => setAppColor(e.target.value)} className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl cursor-pointer border-none bg-transparent" />
-                  <span className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 tracking-widest">Paleta de Cores do App</span>
-                </div>
-                <button onClick={() => setModalConfig(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg active:scale-[0.98] transition-all" style={{ backgroundColor: appColor }}>Salvar e Aplicar</button>
-              </div>
-            )
-          },
-          {
-            isOpen: modalClientes, setOpen: setModalClientes, title: 'Novo Cliente', content: (
-              <form onSubmit={handleAddCliente} className="space-y-4 sm:space-y-6">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Nome Completo</label>
-                  <input type="text" required value={formCliente.nome} onChange={e => setFormCliente({ ...formCliente, nome: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase" placeholder="NOME DO CLIENTE" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Telefone</label>
-                    <input type="text" value={formCliente.telefone} onChange={e => setFormCliente({ ...formCliente, telefone: e.target.value })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="(00) 00000-0000" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Email</label>
-                    <input type="email" value={formCliente.email} onChange={e => setFormCliente({ ...formCliente, email: e.target.value })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="cliente@email.com" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Observações</label>
-                  <textarea value={formCliente.observacoes} onChange={e => setFormCliente({ ...formCliente, observacoes: e.target.value })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm min-h-[100px] resize-none" placeholder="Alergias, preferências, etc..." />
-                </div>
-                <button type="submit" className="w-full bg-slate-900 text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg hover:shadow-indigo-500/20 transition-all font-sans" style={{ backgroundColor: appColor }}>Cadastrar Cliente</button>
-              </form>
-            )
-          },
-          {
-            isOpen: modalIA, setOpen: setModalIA, title: 'Consultoria Estratégica IA', content: (
-              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-                {isAILoading ? (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <div className="w-16 h-16 border-4 border-slate-100 border-t-indigo-500 rounded-full animate-spin"></div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Analisando seus dados...</p>
-                  </div>
-                ) : (
-                  <div className="prose prose-slate max-w-none">
-                    <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-lg">
-                          <Lightbulb size={20} />
-                        </div>
-                        <h3 className="text-lg font-black text-indigo-900 uppercase tracking-tight">Insights do Consultor</h3>
-                      </div>
-                      <div className="text-slate-700 text-sm leading-relaxed prose prose-indigo prose-sm max-w-none font-medium font-outfit">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {aiResponse || "Carregando insights estratégicos..."}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setModalIA(false)}
-                      className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-slate-800 transition-all"
-                    >
-                      Entendido, obrigado!
-                    </button>
-                  </div>
-                )}
-              </div>
-            )
-          },
-          {
-            isOpen: modalReserva, setOpen: setModalReserva, title: 'Reserva de Emergência', content: (
-              <div className="space-y-6">
-                <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-indigo-500 text-white rounded-lg">
-                      <PiggyBank size={20} />
+                  setSonhos((prev) => [...prev, {
+                    id: Date.now(),
+                    nome: fd.get('nome') as string,
+                    valorTotal: parseFloat(fd.get('total') as string) || 0,
+                    juntado: 0,
+                    prazoMes: parseInt(fd.get('mes') as string),
+                    prazoAno: parseInt(fd.get('ano') as string)
+                  }]);
+                  setModalSonhos(false);
+                }} className="space-y-4 sm:space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Nome do Sonho</label>
+                      <input name="nome" placeholder="Ex: Viagem, Carro Novo..." required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-indigo-900 uppercase">Paz Financeira</h3>
-                      <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Sua segurança é prioridade</p>
+                      <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Valor Total</label>
+                      <input name="total" type="number" step="0.01" placeholder="0,00" required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Mês Alvo</label>
+                        <select name="mes" required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase appearance-none cursor-pointer">
+                          <option value="">Selecione...</option>
+                          {meses.map((m, i) => <option key={i} value={i}>{m}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-1 block">Ano Alvo</label>
+                        <input name="ano" type="number" placeholder={new Date().getFullYear().toString()} required className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
+                      </div>
                     </div>
                   </div>
-                  <p className="text-xs text-indigo-700 leading-relaxed font-medium">
-                    A reserva de emergência ideal deve cobrir pelo menos <b>6 meses</b> dos seus gastos fixos (Aluguel, Luz, etc). Ela serve para você nunca precisar de empréstimos em imprevistos.
-                  </p>
+                  <button type="submit" className="w-full bg-slate-900 text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg hover:bg-slate-800 transition-all">Criar Objetivo</button>
+                </form>
+              )
+            },
+            {
+              isOpen: modalNovoServico, setOpen: setModalNovoServico, title: 'Gerenciar Serviços', content: (
+                <div className="space-y-6">
+                  {/* Add New Service Form */}
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const fd = new FormData(e.currentTarget);
+                    const nome = fd.get('nome') as string;
+                    const valor = parseFloat(fd.get('valor') as string) || 0;
+                    setServicos((prev) => [...prev, { id: Date.now().toString(), nome, valor }]);
+                    // Reset form
+                    e.currentTarget.reset();
+                  }} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Adicionar Novo</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <input name="nome" placeholder="Nome do Procedimento" required className="w-full bg-white p-3 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase" />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">R$</span>
+                        <input name="valor" type="number" step="0.01" placeholder="0,00" required className="w-full bg-white p-3 pl-8 rounded-xl font-bold border border-slate-200 outline-none text-sm" />
+                      </div>
+                    </div>
+                    <button type="submit" className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-all flex items-center justify-center gap-2"><Plus size={14} /> Adicionar</button>
+                  </form>
+
+                  {/* List of Services */}
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Serviços Cadastrados</p>
+                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                      {servicos.map(s => (
+                        <div key={s.id} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-xl hover:shadow-sm transition-all group">
+                          <div>
+                            <p className="text-xs font-extrabold text-slate-800 uppercase">{s.nome}</p>
+                            <p className="text-[10px] font-bold text-emerald-500">{formatMoeda(s.valor)}</p>
+                          </div>
+                          <div className="flex items-center gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => {
+                              const novoNome = prompt('Novo nome do serviço:', s.nome);
+                              const novoValor = prompt('Novo valor (R$):', s.valor.toString());
+                              if (novoNome && novoValor) {
+                                setServicos(prev => prev.map(item => item.id === s.id ? { ...item, nome: novoNome, valor: parseFloat(novoValor) || 0 } : item));
+                              }
+                            }} className="p-2 text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg"><Settings size={14} /></button>
+                            <button onClick={() => {
+                              if (confirm('Tem certeza que deseja remover este serviço?')) {
+                                setServicos(prev => prev.filter(item => item.id !== s.id));
+                              }
+                            }} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 size={14} /></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-
-                <div className="space-y-4">
+              )
+            },
+            {
+              isOpen: modalConfig, setOpen: setModalConfig, title: 'Configurações', content: (
+                <div className="space-y-6 sm:space-y-8">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Quanto você já tem guardado? (R$)</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">R$</span>
-                      <input
-                        type="number"
-                        value={reservaEmergencia}
-                        onChange={e => setReservaEmergencia(parseFloat(e.target.value) || 0)}
-                        className="w-full bg-slate-50 p-4 pl-10 rounded-xl font-bold border border-slate-200 outline-none text-lg text-slate-800"
-                        placeholder="0,00"
-                      />
+                    <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-2 block">Modo de Uso</label>
+                    <div className="p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-100 shadow-inner">
+                      <button
+                        onClick={() => { setProjectMode('business'); localStorage.setItem('projectMode', 'business'); }}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${projectMode === 'business' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <Users size={14} /> Profissional
+                      </button>
+                      <button
+                        onClick={() => { setProjectMode('personal'); localStorage.setItem('projectMode', 'personal'); setCurrentView('dashboard'); }}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${projectMode === 'personal' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        <Star size={14} /> Pessoal
+                      </button>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                      <span>Meta Calculada</span>
-                      <span className="text-indigo-600">{formatMoeda(metaReserva)}</span>
+                  <div>
+                    <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-2 block">Nome da Unidade</label>
+                    <input type="text" value={appName} onChange={e => setAppName(e.target.value)} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="Nome da Unidade" />
+                  </div>
+
+                  <div className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <input type="color" value={appColor} onChange={e => setAppColor(e.target.value)} className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl cursor-pointer border-none bg-transparent" />
+                    <span className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 tracking-widest">Paleta de Cores do App</span>
+                  </div>
+                  <button onClick={() => setModalConfig(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg active:scale-[0.98] transition-all" style={{ backgroundColor: appColor }}>Salvar e Aplicar</button>
+                </div>
+              )
+            },
+            {
+              isOpen: modalClientes, setOpen: setModalClientes, title: 'Novo Cliente', content: (
+                <form onSubmit={handleAddCliente} className="space-y-4 sm:space-y-6">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Nome Completo</label>
+                    <input type="text" required value={formCliente.nome} onChange={e => setFormCliente({ ...formCliente, nome: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm uppercase" placeholder="NOME DO CLIENTE" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Telefone</label>
+                      <input type="text" value={formCliente.telefone} onChange={e => setFormCliente({ ...formCliente, telefone: e.target.value })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="(00) 00000-0000" />
                     </div>
-                    <p className="text-[9px] text-slate-400 italic font-medium leading-tight">
-                      * Calculado automaticamente: R$ {totalFixos.toFixed(0)} (Gastos Fixos) x 6 meses.
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Email</label>
+                      <input type="email" value={formCliente.email} onChange={e => setFormCliente({ ...formCliente, email: e.target.value })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="cliente@email.com" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Observações</label>
+                    <textarea value={formCliente.observacoes} onChange={e => setFormCliente({ ...formCliente, observacoes: e.target.value })} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm min-h-[100px] resize-none" placeholder="Alergias, preferências, etc..." />
+                  </div>
+                  <button type="submit" className="w-full bg-slate-900 text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg hover:shadow-indigo-500/20 transition-all font-sans" style={{ backgroundColor: appColor }}>Cadastrar Cliente</button>
+                </form>
+              )
+            },
+            {
+              isOpen: modalIA, setOpen: setModalIA, title: 'Consultoria Estratégica IA', content: (
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {isAILoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                      <div className="w-16 h-16 border-4 border-slate-100 border-t-indigo-500 rounded-full animate-spin"></div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">Analisando seus dados...</p>
+                    </div>
+                  ) : (
+                    <div className="prose prose-slate max-w-none">
+                      <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-lg">
+                            <Lightbulb size={20} />
+                          </div>
+                          <h3 className="text-lg font-black text-indigo-900 uppercase tracking-tight">Insights do Consultor</h3>
+                        </div>
+                        <div className="text-slate-700 text-sm leading-relaxed prose prose-indigo prose-sm max-w-none font-medium font-outfit">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {aiResponse || "Carregando insights estratégicos..."}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setModalIA(false)}
+                        className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-slate-800 transition-all"
+                      >
+                        Entendido, obrigado!
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            },
+            {
+              isOpen: modalReserva, setOpen: setModalReserva, title: 'Reserva de Emergência', content: (
+                <div className="space-y-6">
+                  <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-indigo-500 text-white rounded-lg">
+                        <PiggyBank size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-indigo-900 uppercase">Paz Financeira</h3>
+                        <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Sua segurança é prioridade</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-indigo-700 leading-relaxed font-medium">
+                      A reserva de emergência ideal deve cobrir pelo menos <b>6 meses</b> dos seus gastos fixos (Aluguel, Luz, etc). Ela serve para você nunca precisar de empréstimos em imprevistos.
                     </p>
                   </div>
-                </div>
 
-                <button
-                  onClick={() => setModalReserva(false)}
-                  className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-slate-800 transition-all"
-                >
-                  Salvar Reserva
-                </button>
-              </div>
-            )
-          }
-        ].map((modal, idx) => modal.isOpen && (
-          <div key={idx} className="fixed inset-0 z-[500] flex items-center justify-center p-4 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-fadeIn">
-            <div className="bg-white w-full max-w-lg p-6 sm:p-8 lg:p-12 rounded-[1.5rem] sm:rounded-[2rem] animate-scaleUp shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-              <div className="flex justify-between items-center mb-6 sm:mb-10 border-b pb-4 sm:pb-6">
-                <h2 className="text-base sm:text-xl font-extrabold uppercase text-slate-800">{modal.title}</h2>
-                <button onClick={() => modal.setOpen(false)} className="p-2 text-slate-300 hover:text-slate-800 transition-all"><X size={20} /></button>
-              </div>
-              {modal.content}
-            </div>
-          </div>
-        ))}
-
-        {isSidebarOpen && (
-          <div className="fixed inset-0 z-[400] bg-slate-950/40 backdrop-blur-sm animate-fadeIn" onClick={() => setIsSidebarOpen(false)}>
-            <div className="absolute left-0 top-0 bottom-0 w-[260px] sm:w-[280px] bg-white p-6 sm:p-8 shadow-2xl flex flex-col border-r border-slate-100 animate-fadeInLeft" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-6 sm:mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white"><Activity size={18} /></div>
-                  <span className="font-outfit font-black text-slate-900 text-sm tracking-tighter uppercase">{appName}</span>
-                </div>
-                <button onClick={() => setIsSidebarOpen(false)} className="text-slate-300 hover:text-slate-900 transition-all"><X size={20} /></button>
-              </div>
-
-              {/* MODE TOGGLE */}
-              <div className="mb-8 p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-100 shadow-inner">
-                <button
-                  onClick={() => { setProjectMode('business'); localStorage.setItem('projectMode', 'business'); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${projectMode === 'business' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                >
-                  <Users size={12} /> Profissional
-                </button>
-                <button
-                  onClick={() => { setProjectMode('personal'); localStorage.setItem('projectMode', 'personal'); setCurrentView('dashboard'); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${projectMode === 'personal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                >
-                  <Star size={12} /> Pessoal
-                </button>
-              </div>
-
-              <nav className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
-                <button onClick={() => { setCurrentView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'dashboard' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'dashboard' ? appColor : 'transparent' }}><LayoutDashboard size={18} /> Overview</button>
-
-                {projectMode === 'business' && (
-                  <>
-                    <button onClick={() => { setCurrentView('agenda'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'agenda' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'agenda' ? appColor : 'transparent' }}><Calendar size={18} /> Agenda</button>
-                    <button onClick={() => { setCurrentView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} /> Clientes</button>
-                    <button onClick={() => { setCurrentView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} /> Marketing</button>
-                  </>
-                )}
-
-                <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart size={18} /> Analytics</button>
-                <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} /> Estilo</button>
-
-                <div className="pt-4 mt-4 border-t border-slate-50 px-2">
-                  <button
-                    onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
-                    className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(99,102,241,0.3)] group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
-                      <span>Estratégia IA</span>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Quanto você já tem guardado? (R$)</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">R$</span>
+                        <input
+                          type="number"
+                          value={reservaEmergencia}
+                          onChange={e => setReservaEmergencia(parseFloat(e.target.value) || 0)}
+                          className="w-full bg-slate-50 p-4 pl-10 rounded-xl font-bold border border-slate-200 outline-none text-lg text-slate-800"
+                          placeholder="0,00"
+                        />
+                      </div>
                     </div>
-                    <ChevronRight size={14} className="opacity-50" />
+
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                        <span>Meta Calculada</span>
+                        <span className="text-indigo-600">{formatMoeda(metaReserva)}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-400 italic font-medium leading-tight">
+                        * Calculado automaticamente: R$ {totalFixos.toFixed(0)} (Gastos Fixos) x 6 meses.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setModalReserva(false)}
+                    className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-slate-800 transition-all"
+                  >
+                    Salvar Reserva
                   </button>
                 </div>
-                <div className="pt-6 border-t mt-6">
-                  <button onClick={() => { handleLogout(); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 text-rose-500 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-50 transition-all"><Lock size={18} /> Sair</button>
+              )
+            }
+          ].map((modal, idx) => modal.isOpen && (
+            <div key={idx} className="fixed inset-0 z-[500] flex items-center justify-center p-4 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-fadeIn">
+              <div className="bg-white w-full max-w-lg p-6 sm:p-8 lg:p-12 rounded-[1.5rem] sm:rounded-[2rem] animate-scaleUp shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <div className="flex justify-between items-center mb-6 sm:mb-10 border-b pb-4 sm:pb-6">
+                  <h2 className="text-base sm:text-xl font-extrabold uppercase text-slate-800">{modal.title}</h2>
+                  <button onClick={() => modal.setOpen(false)} className="p-2 text-slate-300 hover:text-slate-800 transition-all"><X size={20} /></button>
                 </div>
-              </nav>
+                {modal.content}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          ))
+        }
+
+        {
+          modalOrcamentos && (
+            <div className="fixed inset-0 z-[600] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
+              <div className="bg-white w-full max-w-lg p-8 rounded-[2rem] shadow-2xl relative animate-scaleUp">
+                <div className="flex justify-between items-center mb-10 pb-6 border-b border-slate-100">
+                  <h2 className="text-xl font-extrabold uppercase text-slate-800 flex items-center gap-3"><ShoppingBag size={24} className="text-indigo-500" /> Limites de Orçamento</h2>
+                  <button onClick={() => setModalOrcamentos(false)} className="p-2 text-slate-300 hover:text-slate-800 transition-all"><X size={24} /></button>
+                </div>
+                <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {CATEGORIAS_PESSOAIS.map(cat => (
+                    <div key={cat} className="flex flex-col gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:border-indigo-100 group">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{cat}</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-bold">R$</span>
+                        <input
+                          type="number"
+                          placeholder="SEM LIMITE"
+                          value={orcamentos[cat] || ''}
+                          onChange={e => setOrcamentos(prev => ({ ...prev, [cat]: parseFloat(e.target.value) || 0 }))}
+                          className="w-full bg-white p-4 pl-10 rounded-xl font-bold border border-slate-200 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-slate-800"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-8">
+                  <button onClick={() => setModalOrcamentos(false)} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all">Salvar Orçamentos</button>
+                  <p className="text-center text-[9px] font-bold text-slate-400 uppercase mt-4 italic">Seu dinheiro livre será recalculado com base nesses alvos.</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          isSidebarOpen && (
+            <div className="fixed inset-0 z-[400] bg-slate-950/40 backdrop-blur-sm animate-fadeIn" onClick={() => setIsSidebarOpen(false)}>
+              <div className="absolute left-0 top-0 bottom-0 w-[260px] sm:w-[280px] bg-white p-6 sm:p-8 shadow-2xl flex flex-col border-r border-slate-100 animate-fadeInLeft" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white"><Activity size={18} /></div>
+                    <span className="font-outfit font-black text-slate-900 text-sm tracking-tighter uppercase">{appName}</span>
+                  </div>
+                  <button onClick={() => setIsSidebarOpen(false)} className="text-slate-300 hover:text-slate-900 transition-all"><X size={20} /></button>
+                </div>
+
+                {/* MODE TOGGLE */}
+                <div className="mb-8 p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-100 shadow-inner">
+                  <button
+                    onClick={() => { setProjectMode('business'); localStorage.setItem('projectMode', 'business'); }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${projectMode === 'business' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <Users size={12} /> Profissional
+                  </button>
+                  <button
+                    onClick={() => { setProjectMode('personal'); localStorage.setItem('projectMode', 'personal'); setCurrentView('dashboard'); }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${projectMode === 'personal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                  >
+                    <Star size={12} /> Pessoal
+                  </button>
+                </div>
+
+                <nav className="space-y-2 sm:space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
+                  <button onClick={() => { setCurrentView('dashboard'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'dashboard' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'dashboard' ? appColor : 'transparent' }}><LayoutDashboard size={18} /> Overview</button>
+
+                  {projectMode === 'business' && (
+                    <>
+                      <button onClick={() => { setCurrentView('agenda'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'agenda' ? 'text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`} style={{ backgroundColor: currentView === 'agenda' ? appColor : 'transparent' }}><Calendar size={18} /> Agenda</button>
+                      <button onClick={() => { setCurrentView('clientes'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'clientes' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><Users size={18} /> Clientes</button>
+                      <button onClick={() => { setCurrentView('marketing'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'marketing' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><PartyPopper size={18} /> Marketing</button>
+                    </>
+                  )}
+
+                  <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart size={18} /> Analytics</button>
+                  <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} /> Estilo</button>
+
+                  <div className="pt-4 mt-4 border-t border-slate-50 px-2">
+                    <button
+                      onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
+                      className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(99,102,241,0.3)] group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
+                        <span>Estratégia IA</span>
+                      </div>
+                      <ChevronRight size={14} className="opacity-50" />
+                    </button>
+                  </div>
+                  <div className="pt-6 border-t mt-6">
+                    <button onClick={() => { handleLogout(); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 text-rose-500 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:bg-rose-50 transition-all"><Lock size={18} /> Sair</button>
+                  </div>
+                </nav>
+              </div>
+            </div>
+          )
+        }
+      </div >
     </ProtectedRoute >
   );
 

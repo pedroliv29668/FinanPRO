@@ -72,6 +72,8 @@ export interface Sonho {
   juntado: number;
   prazoMes: number;
   prazoAno: number;
+  poupancaMensal?: number;
+  dataRealizacao?: string;
 }
 
 export interface GastoFixo {
@@ -80,7 +82,10 @@ export interface GastoFixo {
   valor: number;
   isPadrao: boolean;
   mode?: 'business' | 'personal';
+  vencimento?: number; // Dia do mês (1-31)
 }
+
+export type Orcamentos = Record<string, number>;
 
 export interface MetasOperacionais {
   faturamento: number;
