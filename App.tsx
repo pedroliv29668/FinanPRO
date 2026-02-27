@@ -1363,14 +1363,36 @@ const App: React.FC = () => {
             )
           },
           {
-            isOpen: modalConfig, setOpen: setModalConfig, title: 'Estilo', content: (
+            isOpen: modalConfig, setOpen: setModalConfig, title: 'Configurações', content: (
               <div className="space-y-6 sm:space-y-8">
-                <input type="text" value={appName} onChange={e => setAppName(e.target.value)} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="Nome da Unidade" />
+                <div>
+                  <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-2 block">Modo de Uso</label>
+                  <div className="p-1 bg-slate-100 rounded-xl flex gap-1 border border-slate-100 shadow-inner">
+                    <button
+                      onClick={() => { setProjectMode('business'); localStorage.setItem('projectMode', 'business'); }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${projectMode === 'business' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      <Users size={14} /> Profissional
+                    </button>
+                    <button
+                      onClick={() => { setProjectMode('personal'); localStorage.setItem('projectMode', 'personal'); setCurrentView('dashboard'); }}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${projectMode === 'personal' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/50' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                      <Star size={14} /> Pessoal
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-bold uppercase text-slate-400 ml-1 mb-2 block">Nome da Unidade</label>
+                  <input type="text" value={appName} onChange={e => setAppName(e.target.value)} className="w-full bg-slate-50 p-3.5 sm:p-4 rounded-xl font-bold border border-slate-200 outline-none text-sm" placeholder="Nome da Unidade" />
+                </div>
+
                 <div className="flex gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <input type="color" value={appColor} onChange={e => setAppColor(e.target.value)} className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl cursor-pointer border-none bg-transparent" />
                   <span className="text-[10px] sm:text-xs font-bold uppercase text-slate-400 tracking-widest">Paleta de Cores do App</span>
                 </div>
-                <button onClick={() => setModalConfig(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest" style={{ backgroundColor: appColor }}>Aplicar Novo Estilo</button>
+                <button onClick={() => setModalConfig(false)} className="w-full text-white py-3.5 sm:py-4 rounded-xl font-bold uppercase text-[10px] sm:text-xs tracking-widest shadow-lg active:scale-[0.98] transition-all" style={{ backgroundColor: appColor }}>Salvar e Aplicar</button>
               </div>
             )
           },
