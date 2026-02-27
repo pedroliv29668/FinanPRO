@@ -79,6 +79,7 @@ export interface GastoFixo {
   nome: string;
   valor: number;
   isPadrao: boolean;
+  mode?: 'business' | 'personal';
 }
 
 export interface MetasOperacionais {

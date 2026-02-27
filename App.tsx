@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import {
   Plus, Trash2, TrendingUp, TrendingDown, Target,
   ChevronLeft, ChevronRight, Menu, X, LayoutDashboard, History, ArrowDownLeft,
-  Activity, Lightbulb, Settings, Star, CreditCard, Users, ArrowUpRight, Clock, Calendar, PiggyBank, BarChart, Palette, Trophy, PartyPopper, Receipt, Lock, Mail, ArrowRight, Check, AlertCircle, ShoppingBag, Save, CalendarDays, ArrowUp, ArrowDown, Bell, Sparkles
+  Activity, Lightbulb, Settings, Star, CreditCard, Users, ArrowUpRight, Clock, Calendar, PiggyBank, BarChart, Palette, Trophy, PartyPopper, Receipt, Lock, Mail, ArrowRight, Check, AlertCircle, ShoppingBag, Save, CalendarDays, ArrowUp, ArrowDown, Bell, Sparkles, PieChart as LucidePieChart
 } from 'lucide-react';
 import {
   BarChart as RechartsBarChart,
@@ -40,6 +40,14 @@ interface SonhoExpandido extends Sonho {
   poupancaMensal?: number;
   dataRealizacao?: string;
 }
+
+const CATEGORIAS_PESSOAIS = [
+  'ALIMENTAÇÃO', 'MORADIA', 'TRANSPORTE', 'SAÚDE', 'ESTILO DE VIDA', 'LAZER', 'COMPRAS', 'INVESTIMENTOS', 'OUTROS'
+];
+
+const CATEGORIAS_RECEITA_PESSOAL = [
+  'SALÁRIO', 'PRÓ-LABORE', 'INVESTIMENTOS', 'RENDAS EXTRAS', 'OUTROS'
+];
 
 interface MetasFinanceiras {
   faturamento: number;
@@ -254,6 +262,7 @@ const App: React.FC = () => {
                 mode: d.mode || 'business'
               };
             }));
+            setGastosFixos(prev => prev.map(g => ({ ...g, mode: g.mode || 'business' })));
           }
           setHasLoadedData(true);
         } catch (err) {
@@ -269,6 +278,7 @@ const App: React.FC = () => {
   // Filtragem Global por Modo
   const receitasFiltradas = useMemo(() => receitas.filter(r => (r.mode || 'business') === projectMode), [receitas, projectMode]);
   const despesasFiltradas = useMemo(() => despesasVariaveis.filter(d => (d.mode || 'business') === projectMode), [despesasVariaveis, projectMode]);
+  const gastosFixosFiltrados = useMemo(() => gastosFixos.filter(g => (g.mode || 'business') === projectMode), [gastosFixos, projectMode]);
 
   const receitasMes = useMemo(() => receitasFiltradas.filter(r => r.mes === mesAtual).sort((a, b) => b.id - a.id), [receitasFiltradas, mesAtual]);
   const despesasMes = useMemo(() => despesasFiltradas.filter(d => d.mes === mesAtual).sort((a, b) => b.id - a.id), [despesasFiltradas, mesAtual]);
@@ -280,7 +290,7 @@ const App: React.FC = () => {
     return receitasFiltradas.filter(r => r.mes === mAnt && r.ano === aAnt).reduce((acc, curr) => acc + curr.valor, 0);
   }, [receitasFiltradas, mesAtual, anoAtual]);
 
-  const totalFixos = useMemo(() => gastosFixos.reduce((acc, curr) => acc + curr.valor, 0), [gastosFixos]);
+  const totalFixos = useMemo(() => gastosFixosFiltrados.reduce((acc, curr) => acc + curr.valor, 0), [gastosFixosFiltrados]);
   const totalVariaveis = useMemo(() => despesasMes.reduce((acc, curr) => acc + curr.valor, 0), [despesasMes]);
   const totalDespesas = totalFixos + totalVariaveis;
   const lucroReal = totalReceitas - totalDespesas;
@@ -353,8 +363,18 @@ const App: React.FC = () => {
       { name: 'Fixos', value: totalFixos, color: '#6366f1' },
       { name: 'Variáveis', value: totalVariaveis, color: '#f43f5e' }
     ].filter(item => item.value > 0);
-    return { semanas, historicoMensal, proporcaoGastos };
-  }, [receitasMes, despesasMes, totalFixos, receitas, despesasVariaveis, totalVariaveis]);
+
+    // Dados para o Gráfico de Pizza por Categorias (Modo Pessoal)
+    const despesasPorCategoria = Array.from(
+      despesasMes.reduce((acc, curr) => {
+        const cat = curr.descricao || 'OUTROS';
+        acc.set(cat, (acc.get(cat) || 0) + curr.valor);
+        return acc;
+      }, new Map<string, number>()).entries()
+    ).map(([name, value]) => ({ name, value }));
+
+    return { semanas, historicoMensal, proporcaoGastos, despesasPorCategoria };
+  }, [receitasMes, despesasMes, totalFixos, receitas, despesasVariaveis, totalVariaveis, projectMode]);
 
   useEffect(() => {
     localStorage.setItem('receitas', JSON.stringify(receitas));
@@ -469,6 +489,42 @@ const App: React.FC = () => {
       mode: projectMode
     }, ...prev]);
     setFormDespesa({ ...formDespesa, descricao: '', valor: '' });
+  };
+
+  const handleRetiradaProLabore = (valor: number) => {
+    const agora = new Date();
+    const dataIso = agora.toISOString().split('T')[0];
+
+    // 1. Lança como Despesa na Clínica (Profissional)
+    const novaDespesaClinica: Despesa = {
+      id: Date.now(),
+      descricao: 'RETIRADA PRÓ-LABORE',
+      valor: valor,
+      formaPagamento: 'Pix',
+      data: dataIso,
+      mes: agora.getUTCMonth(),
+      ano: agora.getUTCFullYear(),
+      categoria: 'Saída',
+      mode: 'business'
+    };
+
+    // 2. Lança como Receita no Pessoal
+    const novaReceitaPessoal: Receita = {
+      id: Date.now() + 1,
+      cliente: 'SAQUE CLÍNICA',
+      procedimento: 'PRÓ-LABORE',
+      valor: valor,
+      data: dataIso,
+      formaPagamento: 'Pix',
+      mes: agora.getUTCMonth(),
+      ano: agora.getUTCFullYear(),
+      categoria: 'Entrada',
+      descricao: 'Transferência de Pró-labore',
+      mode: 'personal'
+    };
+
+    setDespesasVariaveis(prev => [novaDespesaClinica, ...prev]);
+    setReceitas(prev => [novaReceitaPessoal, ...prev]);
   };
 
   const agendamentosAmanha = useMemo(() => {
@@ -984,6 +1040,60 @@ const App: React.FC = () => {
                       </section>
                     </div>
                   )}
+
+                  {projectMode === 'personal' && (
+                    <div className="xl:col-span-5 flex flex-col gap-4 sm:gap-6">
+                      <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-100 shadow-sm flex-1 flex flex-col">
+                        <div className="flex justify-between items-center mb-4">
+                          <h2 className="text-[9px] sm:text-[10px] font-extrabold text-slate-800 uppercase flex items-center gap-2"><LucidePieChart size={14} className="text-pink-500" /> Distribuição de Gastos</h2>
+                        </div>
+                        <div className="flex-1 min-h-[220px]">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={analyticsData.despesasPorCategoria}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={80}
+                                paddingAngle={5}
+                                dataKey="value"
+                              >
+                                {analyticsData.despesasPorCategoria.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][index % 6]} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                                formatter={(value: number) => formatMoeda(value)}
+                              />
+                              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '9px', fontWeight: 'black', textTransform: 'uppercase' }} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </section>
+
+                      <section className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl sm:rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform"><ArrowUpRight size={80} /></div>
+                        <div className="relative z-10">
+                          <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80 mb-2">Ação Rápida</p>
+                          <h3 className="text-lg font-black mb-4">Transferir Pró-labore</h3>
+                          <p className="text-[10px] opacity-90 mb-6 leading-relaxed">Retire um valor do caixa da clínica para sua conta pessoal de forma organizada.</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                const v = prompt('Qual valor deseja retirar da clínica?');
+                                if (v) handleRetiradaProLabore(parseFloat(v.replace(',', '.')));
+                              }}
+                              className="px-6 py-2.5 bg-white text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-md"
+                            >
+                              Retirar Agora
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-stretch">
@@ -1023,14 +1133,17 @@ const App: React.FC = () => {
                           {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}
                         </select>
                       ) : (
-                        <input
-                          type="text"
-                          placeholder="CATEGORIA (EX: SALÁRIO, VENDA)"
+                        <select
                           value={formReceita.procedimento}
-                          onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value.toUpperCase() })}
-                          className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase"
+                          onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })}
+                          className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500"
                           required
-                        />
+                        >
+                          <option value="">Selecione a Categoria...</option>
+                          {CATEGORIAS_RECEITA_PESSOAL.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
                       )}
                       <div className="grid grid-cols-2 gap-3">
                         <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
@@ -1053,7 +1166,21 @@ const App: React.FC = () => {
                     <form onSubmit={handleAddDespesa} className="space-y-3 relative z-10">
                       <div className="grid grid-cols-2 gap-3">
                         <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
-                        <input type="text" placeholder={projectMode === 'business' ? 'DESCRIÇÃO' : 'CATEGORIA'} value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                        {projectMode === 'business' ? (
+                          <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                        ) : (
+                          <select
+                            value={formDespesa.descricao}
+                            onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value })}
+                            className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500"
+                            required
+                          >
+                            <option value="">Selecione a Categoria...</option>
+                            {CATEGORIAS_PESSOAIS.map(c => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
@@ -1218,7 +1345,7 @@ const App: React.FC = () => {
                 <div className="space-y-4">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gastos Cadastrados</p>
                   <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {gastosFixos.map((g, idx) => (
+                    {gastosFixosFiltrados.map((g, idx) => (
                       <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
                         <div className="flex justify-between items-center mb-2">
                           <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
@@ -1273,7 +1400,8 @@ const App: React.FC = () => {
                         id: Date.now().toString(),
                         nome: formNovoGastoFixo.nome,
                         valor: parseFloat(formNovoGastoFixo.valor) || 0,
-                        isPadrao: false
+                        isPadrao: false,
+                        mode: projectMode
                       };
                       setGastosFixos(prev => [...prev, novo]);
                       setFormNovoGastoFixo({ nome: '', valor: '' });
