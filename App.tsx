@@ -262,7 +262,14 @@ const App: React.FC = () => {
                 mode: d.mode || 'business'
               };
             }));
-            setGastosFixos(prev => prev.map(g => ({ ...g, mode: g.mode ? g.mode : 'business' })));
+            setGastosFixos(prev => prev.map(g => {
+              // IDs 1-6 são os padrões da clínica (Modo Business)
+              const legacyIds = ['1', '2', '3', '4', '5', '6'];
+              return {
+                ...g,
+                mode: legacyIds.includes(g.id) ? 'business' : (g.mode || 'business')
+              };
+            }));
           }
           setHasLoadedData(true);
         } catch (err) {
@@ -385,6 +392,7 @@ const App: React.FC = () => {
     localStorage.setItem('servicosClinica', JSON.stringify(servicos));
     localStorage.setItem('appName', JSON.stringify(appName));
     localStorage.setItem('appColor', JSON.stringify(appColor));
+    localStorage.setItem('projectMode', projectMode);
     localStorage.setItem('gastosFixos', JSON.stringify(gastosFixos));
     localStorage.setItem('projecaoSelecionada', JSON.stringify(projecaoSelecionada));
     localStorage.setItem('agendamentos', JSON.stringify(agendamentos));
@@ -392,7 +400,11 @@ const App: React.FC = () => {
 
     if (isAuthenticated && hasLoadedData) {
       const syncWithSupabase = async () => {
-        const payload = { receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes };
+        const payload = {
+          receitas, despesasVariaveis, sonhos, metas, servicos,
+          appName, appColor, gastosFixos, projecaoSelecionada,
+          agendamentos, clientes, projectMode
+        };
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from('app_state').upsert({ user_id: user.id, payload }, { onConflict: 'user_id' });
@@ -1376,7 +1388,12 @@ const App: React.FC = () => {
                       gastosFixosFiltrados.map((g, idx) => (
                         <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
                           <div className="flex justify-between items-center mb-2">
-                            <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
+                            <div className="flex items-center gap-2">
+                              <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
+                              <span className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${g.mode === 'personal' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>
+                                {g.mode === 'personal' ? 'Pessoal' : 'Profissional'}
+                              </span>
+                            </div>
                             <button
                               onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
                               className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
