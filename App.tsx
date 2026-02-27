@@ -357,7 +357,8 @@ const App: React.FC = () => {
     const historicoMensal = meses.map((nome, i) => {
       const rec = receitasFiltradas.filter(r => r.mes === i).reduce((acc, curr) => acc + curr.valor, 0);
       const varExp = despesasFiltradas.filter(d => d.mes === i).reduce((acc, curr) => acc + curr.valor, 0);
-      return { nome, faturamento: rec, lucro: rec - (varExp + (projectMode === 'business' ? totalFixos : 0)) };
+      // Lucro agora considera gastos fixos em ambos os modos
+      return { nome, faturamento: rec, lucro: rec - (varExp + totalFixos) };
     });
     const proporcaoGastos = [
       { name: 'Fixos', value: totalFixos, color: '#6366f1' },
@@ -1053,32 +1054,47 @@ const App: React.FC = () => {
                         </div>
                         <div className="flex-1 min-h-[220px] flex items-center justify-center">
                           {analyticsData.despesasPorCategoria.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                              <PieChart>
-                                <Pie
-                                  data={analyticsData.despesasPorCategoria}
-                                  cx="50%"
-                                  cy="50%"
-                                  innerRadius={60}
-                                  outerRadius={80}
-                                  paddingAngle={5}
-                                  dataKey="value"
-                                >
-                                  {analyticsData.despesasPorCategoria.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][index % 6]} />
-                                  ))}
-                                </Pie>
-                                <Tooltip
-                                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
-                                  formatter={(value: number) => formatMoeda(value)}
-                                />
-                                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '9px', fontWeight: 'black', textTransform: 'uppercase' }} />
-                              </PieChart>
-                            </ResponsiveContainer>
+                            <div className="flex flex-col h-full">
+                              <div className="flex-1 min-h-[180px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <PieChart>
+                                    <Pie
+                                      data={analyticsData.despesasPorCategoria}
+                                      cx="50%"
+                                      cy="50%"
+                                      innerRadius={50}
+                                      outerRadius={70}
+                                      paddingAngle={5}
+                                      dataKey="value"
+                                    >
+                                      {analyticsData.despesasPorCategoria.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][index % 6]} />
+                                      ))}
+                                    </Pie>
+                                    <Tooltip
+                                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '10px', fontWeight: 'bold' }}
+                                      formatter={(value: number) => formatMoeda(value)}
+                                    />
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              </div>
+                              <div className="mt-4 space-y-2 max-h-[150px] overflow-y-auto custom-scrollbar pr-1">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1">Ranking de Gastos</p>
+                                {[...analyticsData.despesasPorCategoria].sort((a, b) => b.value - a.value).map((cat, i) => (
+                                  <div key={i} className="flex justify-between items-center text-[10px] font-bold py-1">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: ['#6366f1', '#f43f5e', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'][i % 6] }}></div>
+                                      <span className="text-slate-600 uppercase">{cat.name}</span>
+                                    </div>
+                                    <span className="text-slate-900">{formatMoeda(cat.value)}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           ) : (
-                            <div className="text-center space-y-2">
+                            <div className="text-center space-y-2 py-8">
                               <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Nenhum gasto lançado</p>
-                              <p className="text-[8px] text-slate-400 font-medium italic">Lance uma despesa para ver o gráfico</p>
+                              <p className="text-[8px] text-slate-400 font-medium italic">Lance uma despesa para ver o gráfico e o ranking</p>
                             </div>
                           )}
                         </div>
@@ -1356,27 +1372,46 @@ const App: React.FC = () => {
                 <div className="space-y-4">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Gastos Cadastrados</p>
                   <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                    {gastosFixosFiltrados.map((g, idx) => (
-                      <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
-                        <div className="flex justify-between items-center mb-2">
-                          <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
-                          {!g.isPadrao && (
-                            <button
-                              onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
-                              className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
+                    {gastosFixosFiltrados.length > 0 ? (
+                      gastosFixosFiltrados.map((g, idx) => (
+                        <div key={g.id} className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-200">
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-[9px] sm:text-[10px] font-bold uppercase text-slate-500 ml-1">{g.nome}</label>
+                            {!g.isPadrao && (
+                              <button
+                                onClick={() => setGastosFixos(prev => prev.filter(item => item.id !== g.id))}
+                                className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+                          <input
+                            type="number"
+                            value={g.valor}
+                            onChange={e => setGastosFixos(prev => prev.map((item) => item.id === g.id ? { ...item, valor: parseFloat(e.target.value) || 0 } : item))}
+                            className="w-full bg-white p-2.5 rounded-lg font-bold border border-slate-200 outline-none text-sm"
+                          />
                         </div>
-                        <input
-                          type="number"
-                          value={g.valor}
-                          onChange={e => setGastosFixos(prev => prev.map((item) => item.id === g.id ? { ...item, valor: parseFloat(e.target.value) || 0 } : item))}
-                          className="w-full bg-white p-2.5 rounded-lg font-bold border border-slate-200 outline-none text-sm"
-                        />
+                      ))
+                    ) : (
+                      <div className="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 space-y-4">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">Nenhum gasto fixo cadastrado para este modo</p>
+                        <button
+                          onClick={() => {
+                            const defaults = [
+                              { id: 'p1' + Date.now(), nome: 'ALUGUEL', valor: 0, isPadrao: true, mode: projectMode },
+                              { id: 'p2' + Date.now(), nome: 'LUZ / ÁGUA', valor: 0, isPadrao: true, mode: projectMode },
+                              { id: 'p3' + Date.now(), nome: 'INTERNET', valor: 0, isPadrao: true, mode: projectMode }
+                            ];
+                            setGastosFixos(prev => [...prev, ...defaults]);
+                          }}
+                          className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-indigo-100 transition-all"
+                        >
+                          + Adicionar Sugestões Base
+                        </button>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
