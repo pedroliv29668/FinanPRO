@@ -10,6 +10,7 @@ export interface Receita {
   formaPagamento: 'Pix' | 'Cartão' | 'Dinheiro';
   mes: number;
   ano: number;
+  mode?: 'business' | 'personal';
 }
 
 export interface Despesa {
@@ -21,6 +22,7 @@ export interface Despesa {
   formaPagamento: 'Pix' | 'Cartão' | 'Dinheiro';
   mes: number;
   ano: number;
+  mode?: 'business' | 'personal';
 }
 
 export interface Agendamento {

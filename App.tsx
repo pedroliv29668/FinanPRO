@@ -235,16 +235,24 @@ const App: React.FC = () => {
             if (p.clientes) setClientes(p.clientes);
             if (p.projectMode) setProjectMode(p.projectMode);
 
-            // Sanitização de dados legados (garantir mes/ano)
+            // Sanitização de dados legados (garantir mes/ano e modo default)
             setReceitas(prev => prev.map(r => {
-              if (r.mes !== undefined && r.ano !== undefined) return r;
               const d = new Date(r.data + 'T12:00:00');
-              return { ...r, mes: d.getMonth(), ano: d.getFullYear() };
+              return {
+                ...r,
+                mes: r.mes !== undefined ? r.mes : d.getMonth(),
+                ano: r.ano !== undefined ? r.ano : d.getFullYear(),
+                mode: r.mode || 'business'
+              };
             }));
             setDespesasVariaveis(prev => prev.map(d => {
-              if (d.mes !== undefined && d.ano !== undefined) return d;
               const dt = new Date(d.data + 'T12:00:00');
-              return { ...dt, mes: dt.getMonth(), ano: dt.getFullYear() };
+              return {
+                ...d,
+                mes: d.mes !== undefined ? d.mes : dt.getMonth(),
+                ano: d.ano !== undefined ? d.ano : dt.getFullYear(),
+                mode: d.mode || 'business'
+              };
             }));
           }
           setHasLoadedData(true);
@@ -258,15 +266,19 @@ const App: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  const receitasMes = useMemo(() => receitas.filter(r => r.mes === mesAtual).sort((a, b) => b.id - a.id), [receitas, mesAtual]);
-  const despesasMes = useMemo(() => despesasVariaveis.filter(d => d.mes === mesAtual).sort((a, b) => b.id - a.id), [despesasVariaveis, mesAtual]);
+  // Filtragem Global por Modo
+  const receitasFiltradas = useMemo(() => receitas.filter(r => (r.mode || 'business') === projectMode), [receitas, projectMode]);
+  const despesasFiltradas = useMemo(() => despesasVariaveis.filter(d => (d.mode || 'business') === projectMode), [despesasVariaveis, projectMode]);
+
+  const receitasMes = useMemo(() => receitasFiltradas.filter(r => r.mes === mesAtual).sort((a, b) => b.id - a.id), [receitasFiltradas, mesAtual]);
+  const despesasMes = useMemo(() => despesasFiltradas.filter(d => d.mes === mesAtual).sort((a, b) => b.id - a.id), [despesasFiltradas, mesAtual]);
   const totalReceitas = useMemo(() => receitasMes.reduce((acc, curr) => acc + curr.valor, 0), [receitasMes]);
 
   const totalReceitasAnterior = useMemo(() => {
     const mAnt = mesAtual === 0 ? 11 : mesAtual - 1;
     const aAnt = mesAtual === 0 ? anoAtual - 1 : anoAtual;
-    return receitas.filter(r => r.mes === mAnt && r.ano === aAnt).reduce((acc, curr) => acc + curr.valor, 0);
-  }, [receitas, mesAtual, anoAtual]);
+    return receitasFiltradas.filter(r => r.mes === mAnt && r.ano === aAnt).reduce((acc, curr) => acc + curr.valor, 0);
+  }, [receitasFiltradas, mesAtual, anoAtual]);
 
   const totalFixos = useMemo(() => gastosFixos.reduce((acc, curr) => acc + curr.valor, 0), [gastosFixos]);
   const totalVariaveis = useMemo(() => despesasMes.reduce((acc, curr) => acc + curr.valor, 0), [despesasMes]);
@@ -384,7 +396,8 @@ const App: React.FC = () => {
         mes: dataAgendamento.getMonth(),
         ano: dataAgendamento.getFullYear(),
         categoria: 'Entrada',
-        descricao: `Atendimento: ${ag.servico}`
+        descricao: `Atendimento: ${ag.servico}`,
+        mode: 'business' // Agendamentos são sempre business por enquanto
       };
       setReceitas(prev => [novaReceita, ...prev]);
     }
@@ -433,7 +446,8 @@ const App: React.FC = () => {
       id: Date.now(), valor: v, procedimento: formReceita.procedimento || 'Serviço',
       cliente: formReceita.cliente || 'Consumidor', formaPagamento: formReceita.formaPagamento,
       data: formReceita.data, mes: dObj.getUTCMonth(), ano: dObj.getUTCFullYear(),
-      categoria: 'Entrada', descricao: 'Lançamento Manual'
+      categoria: 'Entrada', descricao: 'Lançamento Manual',
+      mode: projectMode
     }, ...prev]);
     setFormReceita({ ...formReceita, cliente: '', valor: '', procedimento: '' });
   };
@@ -444,9 +458,15 @@ const App: React.FC = () => {
     if (!v || v <= 0) return;
     const dObj = new Date(formDespesa.data);
     setDespesasVariaveis((prev) => [{
-      id: Date.now(), valor: v, descricao: formDespesa.descricao || 'Gasto',
-      categoria: 'Saída', data: formDespesa.data, mes: dObj.getUTCMonth(), ano: dObj.getUTCFullYear(),
-      formaPagamento: formDespesa.formaPagamento
+      id: Date.now(),
+      descricao: formDespesa.descricao || 'Despesa',
+      valor: v,
+      formaPagamento: formDespesa.formaPagamento,
+      data: formDespesa.data,
+      mes: dObj.getUTCMonth(),
+      ano: dObj.getUTCFullYear(),
+      categoria: 'Saída',
+      mode: projectMode
     }, ...prev]);
     setFormDespesa({ ...formDespesa, descricao: '', valor: '' });
   };
