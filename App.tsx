@@ -476,7 +476,52 @@ const App: React.FC = () => {
   };
 
   const handleUpdateAgendamento = (ag: Agendamento) => {
+    // Detectar se o status mudou para "Atendido"
+    const agAnterior = agendamentos.find(item => item.id === ag.id);
+    const mudouParaAtendido = ag.status === 'Atendido' && agAnterior?.status !== 'Atendido';
+
     setAgendamentos(prev => prev.map(item => item.id === ag.id ? ag : item));
+
+    // Quando muda para Atendido, gerar receita automaticamente
+    if (mudouParaAtendido && ag.valor && ag.valor > 0) {
+      // Verificar se a receita já não foi criada (evitar duplicação)
+      const jaExisteReceita = receitas.some(r =>
+        r.descricao === `Atendimento: ${ag.servico}` &&
+        r.cliente === ag.cliente &&
+        r.data === ag.dataInicio.split('T')[0] &&
+        r.valor === ag.valor
+      );
+
+      if (!jaExisteReceita) {
+        const dataAgendamento = new Date(ag.dataInicio);
+        const novaReceita: Receita = {
+          id: Date.now() + 1,
+          cliente: ag.cliente,
+          procedimento: ag.servico,
+          valor: ag.valor,
+          data: ag.dataInicio.split('T')[0],
+          formaPagamento: ag.formaPagamento || 'Pix',
+          mes: dataAgendamento.getMonth(),
+          ano: dataAgendamento.getFullYear(),
+          categoria: 'Entrada',
+          descricao: `Atendimento: ${ag.servico}`,
+          mode: 'business'
+        };
+        setReceitas(prev => [novaReceita, ...prev]);
+
+        // Atualizar totalAtendimentos e totalGasto do cliente
+        setClientes(prev => prev.map(c => {
+          if (c.nome.toLowerCase() === ag.cliente.toLowerCase()) {
+            return {
+              ...c,
+              totalAtendimentos: (c.totalAtendimentos || 0) + 1,
+              totalGasto: (c.totalGasto || 0) + (ag.valor || 0)
+            };
+          }
+          return c;
+        }));
+      }
+    }
   };
 
   const handleRemoveAgendamento = (id: number) => {
