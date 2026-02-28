@@ -1366,24 +1366,24 @@ const App: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6" id="section-lancamentos">
                   <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 transition-transform"><Plus size={80} /></div>
-                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10">
+                    <h3 className="text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2 relative z-10">
                       <Plus size={16} className="text-emerald-500" />
                       {projectMode === 'business' ? 'Lançar Receita' : 'Lançar Entrada'}
                     </h3>
-                    <form onSubmit={handleAddReceita} className="space-y-3 relative z-10">
-                      <div className="grid grid-cols-2 gap-3">
-                        <input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
+                    <form onSubmit={handleAddReceita} className="space-y-2.5 sm:space-y-3 relative z-10">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <input type="date" value={formReceita.data} onChange={e => setFormReceita({ ...formReceita, data: e.target.value })} className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase text-slate-500" required />
                         <input
                           type="text"
                           placeholder={projectMode === 'business' ? 'CLIENTE' : 'ORIGEM / DESCRIÇÃO'}
                           value={formReceita.cliente}
                           onChange={e => setFormReceita({ ...formReceita, cliente: e.target.value.toUpperCase() })}
-                          className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase"
+                          className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase placeholder:text-slate-400"
                           required
                         />
                       </div>
                       {projectMode === 'business' ? (
-                        <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required>
+                        <select value={formReceita.procedimento} onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })} className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase text-slate-500" required>
                           <option value="">Selecione o Procedimento...</option>
                           {servicos.map(s => <option key={s.id} value={s.nome}>{s.nome} - {formatMoeda(s.valor)}</option>)}
                         </select>
@@ -1391,7 +1391,7 @@ const App: React.FC = () => {
                         <select
                           value={formReceita.procedimento}
                           onChange={e => setFormReceita({ ...formReceita, procedimento: e.target.value })}
-                          className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500"
+                          className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase text-slate-500"
                           required
                         >
                           <option value="">Selecione a Categoria...</option>
@@ -1400,34 +1400,34 @@ const App: React.FC = () => {
                           ))}
                         </select>
                       )}
-                      <div className="grid grid-cols-2 gap-3">
-                        <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
-                        <div className="flex gap-1.5">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3">
+                        <input type="text" placeholder="VALOR (R$)" value={formReceita.valor} onChange={e => setFormReceita({ ...formReceita, valor: e.target.value })} className="bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] placeholder:text-slate-400" required />
+                        <div className="flex gap-1 sm:gap-1.5 h-full">
                           {['Pix', 'Cartão', 'Dinheiro'].map(f => (
-                            <button key={f} type="button" onClick={() => setFormReceita({ ...formReceita, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${formReceita.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
+                            <button key={f} type="button" onClick={() => setFormReceita({ ...formReceita, formaPagamento: f as any })} className={`flex-1 flex items-center justify-center py-2 rounded-lg text-[8px] sm:text-[9px] font-black uppercase transition-all border ${formReceita.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900 shadow-md transform scale-105' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
                           ))}
                         </div>
                       </div>
-                      <button type="submit" className="w-full py-3 bg-emerald-500 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.15em] shadow-lg hover:scale-[1.01] transition-all">Salvar Entrada</button>
+                      <button type="submit" className="w-full py-2.5 sm:py-3 bg-emerald-500 text-white rounded-lg sm:rounded-xl font-black uppercase text-[10px] tracking-[0.15em] shadow-lg hover:scale-[1.01] transition-all mt-1">Salvar Entrada</button>
                     </form>
                   </section>
 
                   <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:scale-110 transition-transform"><TrendingDown size={80} /></div>
-                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 relative z-10">
+                    <h3 className="text-[10px] sm:text-xs font-black text-slate-800 uppercase tracking-widest mb-3 sm:mb-4 flex items-center gap-2 relative z-10">
                       <TrendingDown size={16} className="text-rose-500" />
                       {projectMode === 'business' ? 'Lançar Despesa' : 'Lançar Saída'}
                     </h3>
-                    <form onSubmit={handleAddDespesa} className="space-y-3 relative z-10">
-                      <div className="grid grid-cols-2 gap-3">
-                        <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500" required />
+                    <form onSubmit={handleAddDespesa} className="space-y-2.5 sm:space-y-3 relative z-10">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <input type="date" value={formDespesa.data} onChange={e => setFormDespesa({ ...formDespesa, data: e.target.value })} className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase text-slate-500" required />
                         {projectMode === 'business' ? (
-                          <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase" required />
+                          <input type="text" placeholder="DESCRIÇÃO" value={formDespesa.descricao} onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value.toUpperCase() })} className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase placeholder:text-slate-400" required />
                         ) : (
                           <select
                             value={formDespesa.descricao}
                             onChange={e => setFormDespesa({ ...formDespesa, descricao: e.target.value })}
-                            className="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px] uppercase text-slate-500"
+                            className="w-full bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] uppercase text-slate-500"
                             required
                           >
                             <option value="">Selecione a Categoria...</option>
@@ -1437,15 +1437,15 @@ const App: React.FC = () => {
                           </select>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 font-bold text-[11px]" required />
-                        <div className="flex gap-1.5">
+                      <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3">
+                        <input type="text" placeholder="VALOR (R$)" value={formDespesa.valor} onChange={e => setFormDespesa({ ...formDespesa, valor: e.target.value })} className="bg-slate-50 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-slate-200 font-bold text-[10px] sm:text-[11px] placeholder:text-slate-400" required />
+                        <div className="flex gap-1 sm:gap-1.5 h-full">
                           {['Pix', 'Cartão', 'Dinheiro'].map(f => (
-                            <button key={f} type="button" onClick={() => setFormDespesa({ ...formDespesa, formaPagamento: f as any })} className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${formDespesa.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
+                            <button key={f} type="button" onClick={() => setFormDespesa({ ...formDespesa, formaPagamento: f as any })} className={`flex-1 flex items-center justify-center py-2 rounded-lg text-[8px] sm:text-[9px] font-black uppercase transition-all border ${formDespesa.formaPagamento === f ? 'bg-slate-900 text-white border-slate-900 shadow-md transform scale-105' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>{f}</button>
                           ))}
                         </div>
                       </div>
-                      <button type="submit" className="w-full py-3 bg-rose-500 text-white rounded-xl font-black uppercase text-[10px] tracking-[0.15em] shadow-lg hover:scale-[1.01] transition-all">Salvar Saída</button>
+                      <button type="submit" className="w-full py-2.5 sm:py-3 bg-rose-500 text-white rounded-lg sm:rounded-xl font-black uppercase text-[10px] tracking-[0.15em] shadow-lg hover:scale-[1.01] transition-all mt-1">Salvar Saída</button>
                     </form>
                   </section>
                 </div>
