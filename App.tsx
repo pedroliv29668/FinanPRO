@@ -446,21 +446,25 @@ const App: React.FC = () => {
   }, [receitas, despesasVariaveis, sonhos, metas, servicos, appName, appColor, gastosFixos, projecaoSelecionada, agendamentos, clientes, isAuthenticated, hasLoadedData, orcamentos]);
 
   const handleAddAgendamento = (ag: Omit<Agendamento, 'id'>) => {
-    setAgendamentos(prev => [...prev, { ...ag, id: Date.now() }]);
-    if (ag.formaPagamento && ag.valor && ag.valor > 0) {
+    const novoId = Date.now();
+    const novoAgendamento = { ...ag, id: novoId };
+    setAgendamentos(prev => [...prev, novoAgendamento]);
+    // Receita agora é criada APENAS quando o status muda para 'Atendido' (via handleUpdateAgendamento)
+    // Se o agendamento já veio com status 'Atendido', gerar receita imediatamente
+    if (ag.status === 'Atendido' && ag.valor && ag.valor > 0) {
       const dataAgendamento = new Date(ag.dataInicio);
       const novaReceita: Receita = {
-        id: Date.now() + 1,
+        id: novoId + 1,
         cliente: ag.cliente,
         procedimento: ag.servico,
         valor: ag.valor,
         data: ag.dataInicio.split('T')[0],
-        formaPagamento: ag.formaPagamento,
+        formaPagamento: ag.formaPagamento || 'Pix',
         mes: dataAgendamento.getMonth(),
         ano: dataAgendamento.getFullYear(),
         categoria: 'Entrada',
-        descricao: `Atendimento: ${ag.servico}`,
-        mode: 'business' // Agendamentos são sempre business por enquanto
+        descricao: `Agendamento #${novoId}`,
+        mode: 'business'
       };
       setReceitas(prev => [novaReceita, ...prev]);
     }
@@ -479,43 +483,63 @@ const App: React.FC = () => {
     // Detectar se o status mudou para "Atendido"
     const agAnterior = agendamentos.find(item => item.id === ag.id);
     const mudouParaAtendido = ag.status === 'Atendido' && agAnterior?.status !== 'Atendido';
+    const saiuDeAtendido = ag.status !== 'Atendido' && agAnterior?.status === 'Atendido';
 
     setAgendamentos(prev => prev.map(item => item.id === ag.id ? ag : item));
 
     // Quando muda para Atendido, gerar receita automaticamente
-    if (mudouParaAtendido && ag.valor && ag.valor > 0) {
-      // Verificar se a receita já não foi criada (evitar duplicação)
-      const jaExisteReceita = receitas.some(r =>
-        r.descricao === `Atendimento: ${ag.servico}` &&
-        r.cliente === ag.cliente &&
-        r.data === ag.dataInicio.split('T')[0] &&
-        r.valor === ag.valor
-      );
+    if (mudouParaAtendido) {
+      const valorAtendimento = ag.valor || 0;
+      if (valorAtendimento > 0) {
+        // Verificar duplicata usando o ID do agendamento na descrição
+        const descricaoReceita = `Agendamento #${ag.id}`;
+        const jaExisteReceita = receitas.some(r => r.descricao === descricaoReceita);
 
-      if (!jaExisteReceita) {
-        const dataAgendamento = new Date(ag.dataInicio);
-        const novaReceita: Receita = {
-          id: Date.now() + 1,
-          cliente: ag.cliente,
-          procedimento: ag.servico,
-          valor: ag.valor,
-          data: ag.dataInicio.split('T')[0],
-          formaPagamento: ag.formaPagamento || 'Pix',
-          mes: dataAgendamento.getMonth(),
-          ano: dataAgendamento.getFullYear(),
-          categoria: 'Entrada',
-          descricao: `Atendimento: ${ag.servico}`,
-          mode: 'business'
-        };
-        setReceitas(prev => [novaReceita, ...prev]);
+        if (!jaExisteReceita) {
+          const dataAgendamento = new Date(ag.dataInicio);
+          const novaReceita: Receita = {
+            id: Date.now() + 1,
+            cliente: ag.cliente,
+            procedimento: ag.servico,
+            valor: valorAtendimento,
+            data: ag.dataInicio.split('T')[0],
+            formaPagamento: ag.formaPagamento || 'Pix',
+            mes: dataAgendamento.getMonth(),
+            ano: dataAgendamento.getFullYear(),
+            categoria: 'Entrada',
+            descricao: descricaoReceita,
+            mode: 'business'
+          };
+          setReceitas(prev => [novaReceita, ...prev]);
 
-        // Atualizar totalAtendimentos e totalGasto do cliente
+          // Atualizar totalAtendimentos e totalGasto do cliente
+          setClientes(prev => prev.map(c => {
+            if (c.nome.toLowerCase() === ag.cliente.toLowerCase()) {
+              return {
+                ...c,
+                totalAtendimentos: (c.totalAtendimentos || 0) + 1,
+                totalGasto: (c.totalGasto || 0) + valorAtendimento
+              };
+            }
+            return c;
+          }));
+        }
+      }
+    }
+
+    // Quando sai de Atendido (ex: muda para Cancelado), remover a receita correspondente
+    if (saiuDeAtendido) {
+      const descricaoReceita = `Agendamento #${ag.id}`;
+      setReceitas(prev => prev.filter(r => r.descricao !== descricaoReceita));
+
+      // Reverter totalAtendimentos e totalGasto do cliente
+      if (ag.valor && ag.valor > 0) {
         setClientes(prev => prev.map(c => {
           if (c.nome.toLowerCase() === ag.cliente.toLowerCase()) {
             return {
               ...c,
-              totalAtendimentos: (c.totalAtendimentos || 0) + 1,
-              totalGasto: (c.totalGasto || 0) + (ag.valor || 0)
+              totalAtendimentos: Math.max(0, (c.totalAtendimentos || 0) - 1),
+              totalGasto: Math.max(0, (c.totalGasto || 0) - (ag.valor || 0))
             };
           }
           return c;
@@ -1064,7 +1088,7 @@ const App: React.FC = () => {
                             <p className="text-xs text-slate-400 font-semibold truncate">{ag.servico}</p>
                           </div>
                           <div className="flex flex-col items-end min-w-[70px]">
-                            {ag.status === 'Atendido' || (ag.formaPagamento && (!ag.status || ag.status === 'Agendado')) ? (
+                            {ag.status === 'Atendido' ? (
                               <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[10px] font-bold uppercase tracking-wide">ATENDIDO</span>
                             ) : ag.status === 'Cancelado' ? (
                               <span className="px-2 py-1 rounded-full bg-rose-100 text-rose-600 text-[10px] font-bold uppercase tracking-wide">CANCELADO</span>
