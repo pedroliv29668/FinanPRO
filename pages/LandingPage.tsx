@@ -59,18 +59,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                             <button
                                 onClick={() => {
                                     if (isAuthenticated) navigate('/app');
-                                    else document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' });
+                                    else navigate('/login');
                                 }}
                                 className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                             >
-                                {isAuthenticated ? 'IR PARA O PAINEL' : 'QUERO COMEÇAR TESTE GRÁTIS'}
+                                {isAuthenticated ? 'IR PARA O PAINEL' : 'TESTE GRÁTIS POR 30 DIAS'}
                             </button>
                             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                                 <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
                                     <ShieldCheck size={16} className="text-emerald-500" /> Sem cartão
                                 </div>
                                 <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <CircleCheck size={16} className="text-emerald-500" /> 7 dias grátis
+                                    <CircleCheck size={16} className="text-emerald-500" /> 30 dias grátis
                                 </div>
                             </div>
                         </div>
@@ -352,9 +352,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
             {/* SECTION 8: GARANTIA */}
             <section id="garantia" className="py-20 px-4 sm:px-6 bg-slate-50">
                 <div className="max-w-4xl mx-auto p-10 bg-white rounded-[2.5rem] border-4 border-[#10b981] shadow-xl relative overflow-hidden text-center">
-                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-[#1a365d]">🛡️ TESTE GRÁTIS POR 7 DIAS</h2>
+                    <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter mb-4 text-[#1a365d]">🛡️ TESTE GRÁTIS POR 30 DIAS</h2>
                     <p className="text-slate-500 font-medium text-sm md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
-                        Experimente TODAS as funcionalidades sem pagar nada agora. Sem cartão de crédito.
+                        Experimente TODAS as funcionalidades sem pagar nada por 30 dias. Sem cartão de crédito.
                     </p>
                     <div className="flex flex-wrap justify-center gap-6 text-emerald-600 font-black uppercase text-[10px] tracking-widest">
                         <span className="flex items-center gap-2"><CircleCheck size={18} /> Sem contrato</span>
@@ -498,7 +498,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
 
             {/* STICKY FOOTER MOBILE */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-[250] bg-white/90 backdrop-blur-md border-t border-slate-100 p-4 animate-fadeIn">
-                <button onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">Ver Planos e Preços</button>
+                <button onClick={() => navigate(isAuthenticated ? '/app' : '/login')} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">TESTE GRÁTIS 30 DIAS</button>
             </div>
         </div>
     );

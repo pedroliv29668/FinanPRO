@@ -71,7 +71,8 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userEmail, setUserEmail] = useState('');
   const [userName, setUserName] = useState('');
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'pending' | 'expired'>('loading');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'loading' | 'active' | 'trial' | 'pending' | 'expired'>('loading');
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number>(0);
   const isAdmin = userEmail === 'josecardio22@gmail.com';
   const [mesAtual, setMesAtual] = useState<number>(new Date().getMonth());
   const [anoAtual] = useState(new Date().getFullYear());
@@ -178,27 +179,73 @@ const App: React.FC = () => {
   const formatMoeda = (val: number) => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   useEffect(() => {
+    const checkSubscription = async (userId: string, email: string) => {
+      // Admin bypass
+      if (email === 'josecardio22@gmail.com') {
+        setSubscriptionStatus('active');
+        setIsLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('subscription_status, trial_start, subscription_expires_at')
+        .eq('id', userId)
+        .single();
+
+      if (error || !data) {
+        // Perfil não encontrado — criar com trial
+        setSubscriptionStatus('trial');
+        setTrialDaysLeft(30);
+        setIsLoading(false);
+        return;
+      }
+
+      // 1. Verificar assinatura ativa E não expirada
+      if (data.subscription_status === 'active') {
+        if (data.subscription_expires_at) {
+          const expiresAt = new Date(data.subscription_expires_at);
+          if (expiresAt > new Date()) {
+            setSubscriptionStatus('active');
+            setIsLoading(false);
+            return;
+          }
+          // Expirou — cai para verificar trial
+        } else {
+          // Sem data de expiração definida = active indefinido (legado)
+          setSubscriptionStatus('active');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // 2. Verificar trial de 30 dias
+      if (data.trial_start) {
+        const trialStart = new Date(data.trial_start);
+        const now = new Date();
+        const diffMs = now.getTime() - trialStart.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const remaining = 30 - diffDays;
+
+        if (remaining > 0) {
+          setSubscriptionStatus('trial');
+          setTrialDaysLeft(remaining);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // 3. Tudo expirado — mostrar paywall
+      setSubscriptionStatus('expired');
+      setTrialDaysLeft(0);
+      setIsLoading(false);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       setUserEmail(session?.user?.email || '');
-
-      if (session?.user?.email === 'josecardio22@gmail.com') {
-        setSubscriptionStatus('active');
-        setIsLoading(false);
-      } else if (session) {
-        supabase
-          .from('profiles')
-          .select('subscription_status')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data, error }) => {
-            if (error || !data) {
-              setSubscriptionStatus('pending');
-            } else {
-              setSubscriptionStatus(data.subscription_status);
-            }
-            setIsLoading(false);
-          });
+      if (session) {
+        checkSubscription(session.user.id, session.user.email || '');
       } else {
         setSubscriptionStatus('loading');
         setIsLoading(false);
@@ -208,18 +255,8 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session);
       setUserEmail(session?.user?.email || '');
-
-      if (session?.user?.email === 'josecardio22@gmail.com') {
-        setSubscriptionStatus('active');
-      } else if (session) {
-        supabase
-          .from('profiles')
-          .select('subscription_status')
-          .eq('id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            if (data) setSubscriptionStatus(data.subscription_status);
-          });
+      if (session) {
+        checkSubscription(session.user.id, session.user.email || '');
       } else {
         setSubscriptionStatus('loading');
       }
@@ -705,8 +742,8 @@ const App: React.FC = () => {
   const DashboardContent = (
     <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
       <div className="min-h-screen bg-slate-50 font-outfit text-slate-800 overflow-x-hidden selection:bg-indigo-100 pb-20 md:pb-0">
-        {subscriptionStatus !== 'active' && !isAdmin ? (
-          <SubscriptionWall userEmail={userEmail} appColor={appColor} onLogout={handleLogout} />
+        {subscriptionStatus !== 'active' && subscriptionStatus !== 'trial' && !isAdmin ? (
+          <SubscriptionWall userEmail={userEmail} appColor={appColor} onLogout={handleLogout} trialDaysLeft={trialDaysLeft} />
         ) : (
           <div className="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6 lg:py-10">
             <header className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-8 bg-white/70 backdrop-blur-md sticky top-2 sm:top-4 z-[100] px-3 sm:px-6 py-3 sm:py-3 rounded-2xl border border-white shadow-sm transition-all gap-3 sm:gap-0">
