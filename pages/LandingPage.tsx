@@ -6,6 +6,7 @@ import {
     Star, PiggyBank, FileText, Zap, X, Check,
     CircleHelp, MessageCircle, Target
 } from 'lucide-react';
+import AuthenticatedSummary from '../components/AuthenticatedSummary';
 
 interface LandingPageProps {
     isAuthenticated: boolean;
@@ -44,51 +45,54 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
             {/* SECTION 1: HERO - OPTIMIZED FOR ABOVE THE FOLD */}
             <section id="hero" className="pt-20 md:pt-24 pb-8 md:pb-12 px-4 sm:px-6 relative overflow-hidden min-h-[80vh] flex items-center">
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-[#1a365d]/5 -skew-x-12 -z-10 transform origin-top-right"></div>
-                <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-6 md:gap-12 items-center w-full">
-                    <div className="space-y-3 md:space-y-5 text-center lg:text-left">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-[#059669] text-xs md:text-sm font-black uppercase tracking-[0.2em] mb-1 animate-fadeIn">
-                            <Sparkles size={12} /> Gestão para Negócios de Beleza
-                        </div>
-                        <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tighter animate-fadeIn">
-                            Descubra Quanto Você Realmente Lucra <span className="text-[#b76e79] block sm:inline">no Seu Salão</span>
-                        </h1>
-                        <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-sm md:text-lg font-medium leading-relaxed animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-                            Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
-                        </p>
-                        <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-                            <button
-                                onClick={() => {
-                                    if (isAuthenticated) navigate('/app');
-                                    else navigate('/login');
-                                }}
-                                className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
-                            >
-                                {isAuthenticated ? 'IR PARA O PAINEL' : 'TESTE GRÁTIS POR 30 DIAS'}
-                            </button>
-                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                                <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <ShieldCheck size={16} className="text-emerald-500" /> Sem cartão
+                <div className="max-w-7xl mx-auto items-center w-full">
+                    {isAuthenticated ? (
+                        <AuthenticatedSummary userEmail={userEmail} />
+                    ) : (
+                        <div className="grid lg:grid-cols-2 gap-6 md:gap-12 items-center">
+                            <div className="space-y-3 md:space-y-5 text-center lg:text-left">
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-full text-[#059669] text-xs md:text-sm font-black uppercase tracking-[0.2em] mb-1 animate-fadeIn">
+                                    <Sparkles size={12} /> Gestão para Negócios de Beleza
                                 </div>
-                                <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                    <CircleCheck size={16} className="text-emerald-500" /> 30 dias grátis
+                                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tighter animate-fadeIn">
+                                    Descubra Quanto Você Realmente Lucra <span className="text-[#b76e79] block sm:inline">no Seu Salão</span>
+                                </h1>
+                                <p className="max-w-xl mx-auto lg:mx-0 text-slate-500 text-sm md:text-lg font-medium leading-relaxed animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+                                    Mais de 500 empreendedoras de beleza já organizaram suas finanças e aumentaram seus lucros em até 40% com o FINANPRO. Próxima pode ser você.
+                                </p>
+                                <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+                                    <button
+                                        onClick={() => navigate('/login')}
+                                        className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        TESTE GRÁTIS POR 30 DIAS
+                                    </button>
+                                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <ShieldCheck size={16} className="text-emerald-500" /> Sem cartão
+                                        </div>
+                                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                            <CircleCheck size={16} className="text-emerald-500" /> 30 dias grátis
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="relative group animate-fadeIn mt-8 lg:mt-0" style={{ animationDelay: '0.3s' }}>
+                                <div className="bg-white p-3 rounded-[1.5rem] shadow-2xl border border-slate-100 transform rotate-2 group-hover:rotate-0 transition-all duration-700">
+                                    <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800" alt="App Dashboard" className="rounded-xl w-full h-auto object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" />
+                                </div>
+                                <div className="absolute -bottom-6 -left-12 glass p-4 rounded-2xl shadow-xl border border-white/50 flex items-center space-x-3 backdrop-blur-md bg-white/70 z-10">
+                                    <div className="w-10 h-10 rounded-full bg-[#10b981] flex items-center justify-center text-white">
+                                        <TrendingUp size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Seu Lucro esse Mês </p>
+                                        <p className="text-lg font-extrabold text-[#1a365d]">2.500,00</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div className="relative group animate-fadeIn mt-8 lg:mt-0" style={{ animationDelay: '0.3s' }}>
-                        <div className="bg-white p-3 rounded-[1.5rem] shadow-2xl border border-slate-100 transform rotate-2 group-hover:rotate-0 transition-all duration-700">
-                            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=800" alt="App Dashboard" className="rounded-xl w-full h-auto object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" />
-                        </div>
-                        <div className="absolute -bottom-6 -left-12 glass p-4 rounded-2xl shadow-xl border border-white/50 flex items-center space-x-3 backdrop-blur-md bg-white/70 z-10">
-                            <div className="w-10 h-10 rounded-full bg-[#10b981] flex items-center justify-center text-white">
-                                <TrendingUp size={20} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Seu Lucro esse Mês </p>
-                                <p className="text-lg font-extrabold text-[#1a365d]">2.500,00</p>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </section>
 
