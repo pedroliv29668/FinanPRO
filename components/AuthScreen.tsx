@@ -34,10 +34,15 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                 });
                 if (error) throw error;
 
-                // Criar perfil inicial
+                // Criar perfil inicial com trial de 30 dias
                 if (data.user) {
-                    await supabase.from('profiles').insert([
-                        { id: data.user.id, email: data.user.email, subscription_status: 'pending' }
+                    await supabase.from('profiles').upsert([
+                        { 
+                            id: data.user.id, 
+                            email: data.user.email, 
+                            subscription_status: 'trial',
+                            trial_start: new Date().toISOString()
+                        }
                     ]);
                 }
 
