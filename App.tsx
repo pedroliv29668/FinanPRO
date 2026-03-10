@@ -693,6 +693,10 @@ const App: React.FC = () => {
   }, [agendamentos]);
 
   const handleGenerateInsight = async () => {
+    if (!isAdmin) {
+      alert("Consultoria Estratégica IA: Em breve será liberado para todos os usuários!");
+      return;
+    }
     setIsAILoading(true);
     setModalIA(true);
     setAiResponse('');
@@ -2085,8 +2089,15 @@ const App: React.FC = () => {
 
                   <div className="pt-4 mt-4 border-t border-slate-50 px-2">
                     <button
-                      onClick={() => { handleGenerateInsight(); setIsSidebarOpen(false); }}
-                      className="w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(99,102,241,0.3)] group"
+                      onClick={() => {
+                        if (!isAdmin) {
+                          alert("Em breve será liberado!");
+                          return;
+                        }
+                        handleGenerateInsight();
+                        setIsSidebarOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between gap-4 p-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-[0.15em] hover:scale-[1.02] transition-all shadow-[0_10px_20px_rgba(99,102,241,0.3)] group ${!isAdmin ? 'opacity-70' : ''}`}
                     >
                       <div className="flex items-center gap-3">
                         <Sparkles size={18} className="group-hover:rotate-12 transition-transform" />
