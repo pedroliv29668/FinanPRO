@@ -22,21 +22,30 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
 
         try {
             if (isLogin) {
-                const { error } = await supabase.auth.signInWithPassword({
+                const { error: signInError } = await supabase.auth.signInWithPassword({
                     email,
                     password,
                 });
-                if (error) throw error;
+                if (signInError) throw signInError;
             } else {
-                const { data, error } = await supabase.auth.signUp({
+                // SignUp
+                const { data, error: signUpError } = await supabase.auth.signUp({
                     email,
                     password,
+                    options: {
+                        data: {
+                            subscription_status: 'trial',
+                            trial_start: new Date().toISOString(),
+                            full_name: email.split('@')[0]
+                        }
+                    }
                 });
-                if (error) throw error;
+                
+                if (signUpError) throw signUpError;
 
-                // Criar perfil inicial com trial de 30 dias
                 if (data.user) {
-                    await supabase.from('profiles').upsert([
+                    // Tentar criar perfil, mas não travar se falhar (o App.tsx tem fallback)
+                    const { error: profileError } = await supabase.from('profiles').upsert([
                         { 
                             id: data.user.id, 
                             email: data.user.email, 
@@ -44,11 +53,17 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
                             trial_start: new Date().toISOString()
                         }
                     ]);
+                    
+                    if (profileError) {
+                        console.warn('Erro ao criar perfil inicial (RLS?), mas o sistema tentará recuperar logado:', profileError);
+                    }
                 }
 
-                alert('Cadastro realizado! Verifique seu e-mail para confirmar (se necessário) ou faça login.');
+                alert('Cadastro solicitado! Se o sistema não liberar direto, cheque seu e-mail para confirmar a conta.');
+                setIsLogin(true); // Mudar para tela de login após cadastro
             }
         } catch (err: any) {
+            console.error('Erro de Autenticação:', err);
             setError(err.message || 'Ocorreu um erro ao tentar autenticar.');
         } finally {
             setLoading(false);
