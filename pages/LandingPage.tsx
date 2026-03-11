@@ -393,9 +393,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                             </div>
                         )}
 
-                        <div className="bg-white rounded-[2rem] p-10 border-[3px] border-[#b76e79]/30 shadow-2xl relative overflow-hidden group hover:border-[#b76e79] transition-all duration-500">
-                            <h3 className="text-2xl font-black uppercase text-[#1a365d] mb-1">Plano FINANPRO VIP</h3>
-                            <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mb-8">Acesso completo a todas as ferramentas</p>
+                        <div className="bg-white rounded-[2rem] p-8 md:p-10 border-[3px] border-[#b76e79]/30 shadow-2xl relative overflow-hidden group hover:border-[#b76e79] transition-all duration-500">
+                            <div className="mb-6">
+                                <h3 className="text-2xl font-black uppercase text-[#1a365d] mb-1">Plano FINANPRO VIP</h3>
+                                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Tudo o que você precisa para crescer</p>
+                            </div>
+
+                            <div className="mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100 italic">
+                                <p className="text-[#1a365d] text-xs font-bold uppercase tracking-tight">
+                                    ✨ "Menos que o preço de uma escova por mês"
+                                </p>
+                            </div>
 
                             <div className="mb-8 flex flex-col items-center">
                                 <div className="flex items-baseline gap-1">
@@ -411,25 +419,47 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                                 )}
                             </div>
 
-                            <ul className="space-y-3 mb-10 text-left">
+                            <div className="grid grid-cols-1 gap-3 mb-10 text-left">
                                 {[
-                                    'Acesso Completo',
-                                    'Suporte VIP via WhatsApp',
-                                    'IA Estratégica Ilimitada',
-                                    'Gerador de Copys de Vendas'
+                                    { icon: <Calendar size={14} />, text: 'Agenda Inteligente Automática' },
+                                    { icon: <PiggyBank size={14} />, text: 'Gestão de Sonhos Exclusiva' },
+                                    { icon: <Zap size={14} />, text: 'IA Estratégica & Copys' },
+                                    { icon: <Users size={14} />, text: 'CRM e Histórico de Clientes' },
+                                    { icon: <BarChart size={14} />, text: 'Relatórios de Lucro Real' },
+                                    { icon: <ShieldCheck size={14} />, text: 'Suporte VIP Individual' }
                                 ].map((item, ii) => (
-                                    <li key={ii} className="flex items-center gap-3 text-sm font-bold text-slate-600 uppercase tracking-tight">
-                                        <Check size={14} className="text-[#059669] shrink-0" />
-                                        {item}
-                                    </li>
+                                    <div key={ii} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
+                                        <div className="w-8 h-8 rounded-lg bg-[#b76e79]/10 text-[#b76e79] flex items-center justify-center shrink-0">
+                                            {item.icon}
+                                        </div>
+                                        <span className="text-[11px] font-black text-slate-600 uppercase tracking-tight">{item.text}</span>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
 
-                            <button onClick={() => window.open('https://lastlink.com/p/C969D3A79/checkout-payment/', '_blank')} className="w-full py-5 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+                            <button onClick={() => window.open('https://lastlink.com/p/C969D3A79/checkout-payment/', '_blank')} className="w-full py-5 bg-[#10b981] text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all mb-4">
                                 ASSINAR AGORA E COMEÇAR
                             </button>
 
-                            <p className="mt-4 text-[8px] font-bold text-slate-400 uppercase tracking-widest">🔒 Cancelamento instantâneo em 1 clique</p>
+                            <div className="space-y-4">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                    Junte-se a +500 empreendedoras da beleza 👑
+                                </p>
+                                
+                                <div className="flex justify-center items-center gap-3 pt-4 border-t border-slate-100">
+                                    <div className="flex gap-1.5 grayscale opacity-50">
+                                        <div className="px-1.5 py-0.5 border border-slate-300 rounded text-[8px] font-bold">PIX</div>
+                                        <div className="px-1.5 py-0.5 border border-slate-300 rounded text-[8px] font-bold">VISA</div>
+                                        <div className="px-1.5 py-0.5 border border-slate-300 rounded text-[8px] font-bold">MASTER</div>
+                                    </div>
+                                    <div className="h-4 w-px bg-slate-200"></div>
+                                    <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-600 uppercase tracking-widest">
+                                        <ShieldCheck size={10} /> 100% Seguro
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                         </div>
                     </div>
                 </div>
