@@ -64,7 +64,18 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
             }
         } catch (err: any) {
             console.error('Erro de Autenticação:', err);
-            setError(err.message || 'Ocorreu um erro ao tentar autenticar.');
+            let friendlyMessage = err.message || 'Ocorreu um erro ao tentar autenticar.';
+            
+            // Tradução de erros comuns do Supabase
+            if (err.message === 'email rate limit exceeded') {
+                friendlyMessage = 'Muitas tentativas em pouco tempo. Por favor, aguarde alguns minutos e tente novamente.';
+            } else if (err.message === 'User already registered') {
+                friendlyMessage = 'Este e-mail já está cadastrado. Tente fazer login.';
+            } else if (err.message === 'Invalid login credentials') {
+                friendlyMessage = 'E-mail ou senha incorretos.';
+            }
+            
+            setError(friendlyMessage);
         } finally {
             setLoading(false);
         }
