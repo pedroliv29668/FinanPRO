@@ -360,11 +360,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                     <p className="text-slate-500 font-medium text-sm md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
                         Experimente TODAS as funcionalidades sem pagar nada por 30 dias. Sem cartão de crédito.
                     </p>
-                    <div className="flex flex-wrap justify-center gap-6 text-emerald-600 font-black uppercase text-[10px] tracking-widest">
+                    <div className="flex flex-wrap justify-center gap-6 text-emerald-600 font-black uppercase text-[10px] tracking-widest mb-8">
                         <span className="flex items-center gap-2"><CircleCheck size={18} /> Sem contrato</span>
                         <span className="flex items-center gap-2"><CircleCheck size={18} /> 100% Online</span>
                         <span className="flex items-center gap-2"><CircleCheck size={18} /> Suporte VIP</span>
                     </div>
+                    <button 
+                        onClick={() => navigate('/login?mode=signup')}
+                        className="px-8 py-4 border-2 border-[#10b981] text-[#10b981] rounded-xl font-black uppercase text-xs tracking-widest hover:bg-[#10b981] hover:text-white transition-all shadow-md active:scale-95"
+                    >
+                        Quero começar meu teste grátis agora 🚀
+                    </button>
                 </div>
             </section>
 
@@ -439,6 +445,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
 
                             <button onClick={() => window.open('https://lastlink.com/p/C969D3A79/checkout-payment/', '_blank')} className="w-full py-5 bg-[#10b981] text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all mb-4">
                                 ASSINAR AGORA E COMEÇAR
+                            </button>
+
+                            <button 
+                                onClick={() => navigate('/login?mode=signup')}
+                                className="w-full py-3 text-slate-400 hover:text-slate-600 text-[10px] font-black uppercase tracking-widest transition-all mb-4"
+                            >
+                                ou prefiro testar 30 dias grátis antes
                             </button>
 
                             <div className="space-y-4">
