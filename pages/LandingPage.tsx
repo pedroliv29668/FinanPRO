@@ -473,8 +473,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                             </div>
                         </div>
                     </div>
-                        </div>
-                    </div>
                 </div>
             </section>
 
