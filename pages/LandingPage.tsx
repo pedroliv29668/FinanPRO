@@ -62,7 +62,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                                 </p>
                                 <div className="space-y-4 animate-fadeIn" style={{ animationDelay: '0.2s' }}>
                                     <button
-                                        onClick={() => navigate('/login')}
+                                        onClick={() => navigate('/login?mode=signup')}
                                         className="w-full sm:w-auto px-10 py-5 bg-[#10b981] text-white rounded-xl md:rounded-2xl font-black uppercase text-xs md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                                     >
                                         TESTE GRÁTIS POR 30 DIAS
@@ -532,7 +532,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
 
             {/* STICKY FOOTER MOBILE */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-[250] bg-white/90 backdrop-blur-md border-t border-slate-100 p-4 animate-fadeIn">
-                <button onClick={() => navigate(isAuthenticated ? '/app' : '/login')} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">TESTE GRÁTIS 30 DIAS</button>
+                <button onClick={() => navigate(isAuthenticated ? '/app' : '/login?mode=signup')} className="w-full py-4 bg-[#10b981] text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl">TESTE GRÁTIS 30 DIAS</button>
             </div>
         </div>
     );

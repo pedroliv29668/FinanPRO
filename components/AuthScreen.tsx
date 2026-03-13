@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Mail, Lock, Activity, UserPlus, LogIn, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabase';
 
@@ -9,11 +9,19 @@ interface AuthScreenProps {
 }
 
 const AuthScreen: React.FC<AuthScreenProps> = ({ appName, appColor }) => {
+    const [searchParams] = useSearchParams();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const mode = searchParams.get('mode');
+        if (mode === 'signup') {
+            setIsLogin(false);
+        }
+    }, [searchParams]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
