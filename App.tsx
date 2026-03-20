@@ -278,6 +278,20 @@ const App: React.FC = () => {
 
           if (data && data.payload) {
             const p = data.payload;
+
+            // Trava de Segurança Anti-Sobrescrita (Impede que uma nuvem vazia zere um celular cheio)
+            const localRec = getSaved('receitas', []);
+            const localDesp = getSaved('despesasVariaveis', []);
+            const localCli = getSaved('clientes', []);
+            const totalLocalItems = localRec.length + localDesp.length + localCli.length;
+            const totalCloudItems = (p.receitas?.length || 0) + (p.despesasVariaveis?.length || 0) + (p.clientes?.length || 0);
+
+            if (totalCloudItems === 0 && totalLocalItems > 0) {
+               console.warn("Nuvem vazia, mas aparelho tem dados! Forçando upload do aparelho para proteção.");
+               setHasLoadedData(true); // Aciona o useEffect de syncWithSupabase para salvar na nuvem
+               return; // Interrompe o carregamento da nuvem para não apagar a tela
+            }
+
             const legacyIds = ['1', '2', '3', '4', '5', '6'];
 
             if (p.receitas) {
