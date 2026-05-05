@@ -25,7 +25,7 @@ import { supabase } from './services/supabase';
 import { getAIInsight } from './services/geminiService';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente, Servico } from './types';
+import { Receita, Despesa, Sonho, GastoFixo, Conquista, Agendamento, Cliente, Servico, Orcamentos } from './types';
 import AuthScreen from './components/AuthScreen';
 import CalendarView from './components/CalendarView';
 import ClientesView from './components/ClientesView';
