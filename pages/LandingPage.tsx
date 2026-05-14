@@ -4,7 +4,7 @@ import {
     Activity, Sparkles, ShieldCheck, CircleCheck,
     TrendingUp, BarChart, Clock, CreditCard, Users,
     Star, PiggyBank, FileText, Zap, X, Check,
-    CircleHelp, MessageCircle, Target, Calendar
+    CircleHelp, MessageCircle, Target, Calendar, Palette
 } from 'lucide-react';
 import AuthenticatedSummary from '../components/AuthenticatedSummary';
 
