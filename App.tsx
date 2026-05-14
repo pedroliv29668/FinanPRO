@@ -33,6 +33,7 @@ import MarketingView from './components/MarketingView';
 import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SubscriptionWall from './components/SubscriptionWall';
+import HelpView from './components/HelpView';
 
 const meses = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 
@@ -77,7 +78,7 @@ const App: React.FC = () => {
   const [mesAtual, setMesAtual] = useState<number>(new Date().getMonth());
   const [anoAtual] = useState(new Date().getFullYear());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'reports' | 'agenda' | 'clientes' | 'marketing'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'reports' | 'agenda' | 'clientes' | 'marketing' | 'help'>('dashboard');
   const [projectMode, setProjectMode] = useState<'business' | 'personal'>(() => getSaved('projectMode', 'business'));
 
 
@@ -820,6 +821,10 @@ const App: React.FC = () => {
             {currentView === 'marketing' && (
               <MarketingView clientes={clientes} agendamentos={agendamentos} receitas={receitas} appColor={appColor} onEditCliente={(cliente) => { setClienteParaEdicaoGlobal(cliente); setModalGlobalCliente(true); }} isAdmin={isAdmin} />
             )}
+            {currentView === 'help' && (
+              <HelpView appColor={appColor} />
+            )}
+
             {currentView === 'reports' && (
               /* REPORTS VIEW */
               <div className="animate-fadeIn pb-32 space-y-12 sm:space-y-16 lg:space-y-24 px-4 sm:px-6">
@@ -2099,6 +2104,7 @@ const App: React.FC = () => {
                   )}
 
                   <button onClick={() => { setCurrentView('reports'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'reports' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}><BarChart size={18} /> Analytics</button>
+                  <button onClick={() => { setCurrentView('help'); setIsSidebarOpen(false); }} className={`w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all ${currentView === 'help' ? 'bg-[#b76e79] text-white shadow-md' : 'text-[#b76e79] hover:bg-[#b76e79]/10'}`}><BookOpen size={18} /> Ajuda VIP 💅</button>
                   <button onClick={() => { setModalConfig(true); setIsSidebarOpen(false); }} className="w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-xl font-bold text-[10px] sm:text-xs text-slate-400 uppercase tracking-widest hover:text-slate-600 hover:bg-slate-50"><Palette size={18} /> Estilo</button>
 
                   <div className="pt-4 mt-4 border-t border-slate-50 px-2">
