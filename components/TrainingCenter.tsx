@@ -5,8 +5,9 @@ import {
     Star, BookOpen, X, ChevronRight, CheckCircle2, Info
 } from 'lucide-react';
 
-interface HelpViewProps {
+interface TrainingCenterProps {
     appColor: string;
+    isPublic?: boolean;
 }
 
 interface ModuleDetail {
@@ -25,7 +26,7 @@ interface Module {
     details: ModuleDetail;
 }
 
-const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
+const TrainingCenter: React.FC<TrainingCenterProps> = ({ appColor, isPublic = false }) => {
     const [selectedModule, setSelectedModule] = useState<Module | null>(null);
 
     const modules: Module[] = [
@@ -53,7 +54,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
             icon: <Zap size={24} />,
             desc: "Alterne entre suas finanças profissionais e pessoais no topo do app. O sistema mantém os dados 100% separados.",
             tip: "Nunca misture as contas! Isso é o segredo do sucesso.",
-            image: "/assets/training/dashboard.png", // Use dashboard image as reference for mode toggle
+            image: "/assets/training/dashboard.png",
             details: {
                 intro: "O FinanPRO é '2 apps em 1'. No menu lateral, você escolhe se quer ver o seu Salão (Modo Profissional) ou a sua Vida (Modo Pessoal).",
                 steps: [
@@ -89,7 +90,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
             icon: <Users size={24} />,
             desc: "Acompanhe quem são suas melhores clientes, quanto elas gastam e quando foi a última visita.",
             tip: "Dê atenção especial às clientes com ticket alto.",
-            image: "/assets/training/financeiro.png", // Placeholder image
+            image: "/assets/training/financeiro.png",
             details: {
                 intro: "Suas clientes são seu maior ativo. O módulo de Clientes mostra quem são elas, o que elas gostam e quanto elas trazem de retorno.",
                 steps: [
@@ -143,7 +144,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
             icon: <MessageCircle size={24} />,
             desc: "Confirmação de horários, aniversariantes e resgate via WhatsApp com um clique.",
             tip: "Use a IA para criar mensagens personalizadas.",
-            image: "/assets/training/dashboard.png", // Use dashboard for context
+            image: "/assets/training/dashboard.png",
             details: {
                 intro: "Vender é a alma do negócio. Este módulo automatiza sua comunicação para que você nunca perca uma venda por esquecimento.",
                 steps: [
@@ -248,30 +249,36 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
     ];
 
     return (
-        <div className="animate-fadeIn space-y-8 pb-20">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 uppercase tracking-tight flex items-center gap-3 font-outfit">
-                        <div className="p-2.5 rounded-xl shadow-sm" style={{ backgroundColor: `${appColor}15`, color: appColor }}>
-                            <BookOpen size={24} />
-                        </div>
-                        Central VIP de Treinamento
-                    </h1>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1 ml-1">
-                        Domine cada ferramenta do seu império
-                    </p>
+        <div className={`animate-fadeIn space-y-8 ${!isPublic ? 'pb-20' : ''}`}>
+            {/* Header - Only in App */}
+            {!isPublic && (
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 uppercase tracking-tight flex items-center gap-3 font-outfit">
+                            <div className="p-2.5 rounded-xl shadow-sm" style={{ backgroundColor: `${appColor}15`, color: appColor }}>
+                                <BookOpen size={24} />
+                            </div>
+                            Central VIP de Treinamento
+                        </h1>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1 ml-1">
+                            Domine cada ferramenta do seu império
+                        </p>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Banner de Boas Vindas */}
-            <div className="bg-[#1a365d] rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl">
+            <div className={`${isPublic ? 'bg-gradient-to-br from-[#1a365d] to-[#b76e79]' : 'bg-[#1a365d]'} rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl`}>
                 <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-white/10 to-transparent"></div>
                 <div className="relative z-10 space-y-2">
-                    <h2 className="text-xl font-black uppercase">Bem-vinda à sua área exclusiva, Rainha! 👑</h2>
+                    <h2 className="text-xl sm:text-2xl font-black uppercase">
+                        {isPublic ? 'Conheça o FinanPRO por dentro! 👑' : 'Bem-vinda à sua área exclusiva, Rainha! 👑'}
+                    </h2>
                     <p className="text-slate-300 text-sm font-medium max-w-2xl leading-relaxed">
-                        Este é o seu guia definitivo. Abaixo você encontra o passo a passo de cada funcionalidade. 
-                        Clique em qualquer módulo para entender como extrair o máximo de lucro do FinanPRO.
+                        {isPublic 
+                            ? 'Explore como nossa plataforma transforma a gestão do seu salão em lucro real. Clique nos módulos abaixo para ver demonstrações do sistema.' 
+                            : 'Este é o seu guia definitivo. Abaixo você encontra o passo a passo de cada funcionalidade.'
+                        }
                     </p>
                 </div>
             </div>
@@ -291,7 +298,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                         <p className="text-slate-500 text-[11px] font-medium leading-relaxed mb-4 flex-grow">{item.desc}</p>
                         <div className="pt-3 border-t border-slate-50 flex justify-between items-center">
                             <p className="text-[9px] font-black text-[#b76e79] uppercase tracking-widest flex items-center gap-2">
-                                <Star size={10} /> Dica: {item.tip}
+                                <Star size={10} /> {isPublic ? 'Ver Detalhes' : `Dica: ${item.tip}`}
                             </p>
                             <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
                         </div>
@@ -299,17 +306,30 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                 ))}
             </div>
 
-            {/* CTA Suporte */}
-            <div className="bg-emerald-50 rounded-[2rem] border border-emerald-100 p-6 flex flex-col sm:flex-row items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg">
-                    <MessageCircle size={24} />
+            {/* CTA Suporte - Only in App or custom for Public */}
+            {!isPublic ? (
+                <div className="bg-emerald-50 rounded-[2rem] border border-emerald-100 p-6 flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg">
+                        <MessageCircle size={24} />
+                    </div>
+                    <div className="text-center sm:text-left">
+                        <h4 className="text-sm font-black text-emerald-900 uppercase tracking-tight">Ainda com dúvidas?</h4>
+                        <p className="text-[11px] text-emerald-700 font-medium">Chame nosso suporte VIP agora no WhatsApp. Estamos prontos para te ajudar!</p>
+                    </div>
+                    <button className="sm:ml-auto w-full sm:w-auto bg-emerald-500 text-white px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-600 transition-all active:scale-95">Chamar Suporte</button>
                 </div>
-                <div className="text-center sm:text-left">
-                    <h4 className="text-sm font-black text-emerald-900 uppercase tracking-tight">Ainda com dúvidas?</h4>
-                    <p className="text-[11px] text-emerald-700 font-medium">Chame nosso suporte VIP agora no WhatsApp. Estamos prontos para te ajudar!</p>
+            ) : (
+                <div className="bg-slate-50 rounded-[2rem] border border-slate-200 p-10 text-center space-y-6">
+                    <h3 className="text-xl font-black text-[#1a365d] uppercase">Pronta para profissionalizar seu negócio?</h3>
+                    <p className="text-slate-500 text-sm font-medium max-w-xl mx-auto">Junte-se a centenas de empreendedoras que já estão no controle total de seus lucros.</p>
+                    <button 
+                        onClick={() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="bg-[#10b981] text-white px-10 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all"
+                    >
+                        COMEÇAR MEU TESTE GRÁTIS
+                    </button>
                 </div>
-                <button className="sm:ml-auto w-full sm:w-auto bg-emerald-500 text-white px-8 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-600 transition-all active:scale-95">Chamar Suporte</button>
-            </div>
+            )}
 
             {/* Modal de Detalhes do Módulo */}
             {selectedModule && (
@@ -326,7 +346,9 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                                 </div>
                                 <div>
                                     <h2 className="text-xl sm:text-2xl font-black text-[#1a365d] uppercase tracking-tight">{selectedModule.title}</h2>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Guia de Implementação VIP</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {isPublic ? 'Demonstração de Funcionalidade' : 'Guia de Implementação VIP'}
+                                    </p>
                                 </div>
                             </div>
                             <button 
@@ -356,7 +378,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                                         </div>
                                     </div>
                                     <p className="mt-6 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-relaxed px-4">
-                                        * Esta imagem é uma representação real da seção no seu aplicativo. Siga as instruções ao lado.
+                                        * Esta é uma tela real do sistema operando.
                                     </p>
                                 </div>
 
@@ -372,7 +394,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-black text-[#1a365d] uppercase tracking-widest mb-4">Passo a Passo Detalhado:</h3>
+                                        <h3 className="text-sm font-black text-[#1a365d] uppercase tracking-widest mb-4">Como funciona na prática:</h3>
                                         {selectedModule.details.steps.map((step, idx) => (
                                             <div key={idx} className="flex gap-4 group">
                                                 <div className="w-6 h-6 rounded-full bg-[#b76e79]/10 text-[#b76e79] flex items-center justify-center text-[10px] font-black shrink-0 group-hover:bg-[#b76e79] group-hover:text-white transition-all">
@@ -386,7 +408,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                                     <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 relative overflow-hidden">
                                         <div className="absolute right-0 top-0 p-4 opacity-[0.05]"><Star size={64} className="text-indigo-600" /></div>
                                         <h4 className="text-[10px] font-black text-indigo-900 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
-                                            <Sparkles size={14} className="text-[#b76e79]" /> Segredo de Rainha
+                                            <Sparkles size={14} className="text-[#b76e79]" /> Benefício Exclusivo
                                         </h4>
                                         <p className="text-indigo-700 text-xs font-bold leading-relaxed relative z-10 italic">
                                             "{selectedModule.details.extra}"
@@ -402,7 +424,7 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
                                 onClick={() => setSelectedModule(null)}
                                 className="w-full sm:w-auto px-12 py-5 bg-[#1a365d] text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl hover:bg-slate-900 transition-all active:scale-95"
                             >
-                                Entendi, vamos aplicar! 💅
+                                {isPublic ? 'Voltar para a página' : 'Entendi, vamos aplicar! 💅'}
                             </button>
                         </div>
                     </div>
@@ -412,4 +434,4 @@ const HelpView: React.FC<HelpViewProps> = ({ appColor }) => {
     );
 };
 
-export default HelpView;
+export default TrainingCenter;

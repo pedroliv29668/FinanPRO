@@ -7,6 +7,7 @@ import {
     CircleHelp, MessageCircle, Target, Calendar, Palette
 } from 'lucide-react';
 import AuthenticatedSummary from '../components/AuthenticatedSummary';
+import TrainingCenter from '../components/TrainingCenter';
 
 interface LandingPageProps {
     isAuthenticated: boolean;
@@ -31,7 +32,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                     <nav className="hidden md:flex items-center gap-8">
                         <a href="#solucao" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Solução</a>
                         <a href="#planos" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Preços</a>
-                        {isAuthenticated && <a href="#suporte-vip" className="text-xs font-bold uppercase tracking-widest text-[#b76e79] hover:opacity-80 transition-colors">Ajuda VIP 💅</a>}
+                        <a href="#experiencia" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">Experiência</a>
                         <a href="#faq" className="text-xs font-bold uppercase tracking-widest hover:text-[#059669] transition-colors">FAQ</a>
                     </nav>
                     <button
@@ -508,124 +509,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ isAuthenticated, userEmail })
                 </div>
             </section>
 
-            {/* SECTION: SUPORTE VIP EXCLUSIVO (Apenas para autenticados) */}
-            {isAuthenticated && (
-                <section id="suporte-vip" className="py-24 bg-slate-50 px-4 sm:px-6 border-t border-slate-200">
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center mb-16 space-y-4">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#b76e79]/10 text-[#b76e79] rounded-full text-xs font-black uppercase tracking-[0.3em]">
-                                <Sparkles size={16} /> Área Exclusiva da Aluna
-                            </div>
-                            <h2 className="text-3xl sm:text-5xl font-black text-[#1a365d] uppercase tracking-tighter">Central de Treinamento VIP</h2>
-                            <p className="text-slate-500 font-medium max-w-2xl mx-auto">
-                                Domine 100% das ferramentas do FinanPRO. Preparamos este guia completo para que você não tenha nenhuma dúvida na hora de escalar seu negócio.
-                            </p>
+            {/* SECTION: EXPERIÊNCIA POR DENTRO (Público) */}
+            <section id="experiencia" className="py-24 bg-slate-50 px-4 sm:px-6 border-t border-slate-200">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center mb-16 space-y-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#b76e79]/10 text-[#b76e79] rounded-full text-xs font-black uppercase tracking-[0.3em]">
+                            <Sparkles size={16} /> Experiência Real
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {[
-                                {
-                                    title: "01. Dashboard & Filtros",
-                                    icon: <Activity size={24} />,
-                                    desc: "Aprenda a ler os cards de faturamento, despesas e lucro real. Use o seletor de meses para comparar seu crescimento histórico.",
-                                    tip: "Mantenha o foco no 'Lucro Real' após os descontos."
-                                },
-                                {
-                                    title: "02. Modos: Pro vs Pessoal",
-                                    icon: <Zap size={24} />,
-                                    desc: "Alterne entre suas finanças profissionais e pessoais no topo do app. O sistema mantém os dados 100% separados.",
-                                    tip: "Nunca misture as contas! Isso é o segredo do sucesso."
-                                },
-                                {
-                                    title: "03. Agenda Inteligente",
-                                    icon: <Calendar size={24} />,
-                                    desc: "Cadastre seus atendimentos. Ao marcar um cliente como 'Atendido', o sistema gera a receita automaticamente no financeiro.",
-                                    tip: "Use o status 'Atendido' para ganhar tempo!"
-                                },
-                                {
-                                    title: "04. Gestão de Clientes (CRM)",
-                                    icon: <Users size={24} />,
-                                    desc: "Acompanhe quem são suas melhores clientes, quanto elas gastam e quando foi a última visita.",
-                                    tip: "Dê atenção especial às clientes com ticket alto."
-                                },
-                                {
-                                    title: "05. Financeiro Profissional",
-                                    icon: <CreditCard size={24} />,
-                                    desc: "Gerencie gastos fixos (aluguel, luz) e variáveis. Faça retiradas de Pro-labore direto para o seu modo pessoal.",
-                                    tip: "Defina seu Pro-labore para ter um salário fixo."
-                                },
-                                {
-                                    title: "06. Financeiro Pessoal",
-                                    icon: <PiggyBank size={24} />,
-                                    desc: "Controle suas contas de casa por categorias (Moradia, Alimentação...) e acompanhe a fatura do cartão de crédito.",
-                                    tip: "Cuidado com os gastos variáveis no pessoal."
-                                },
-                                {
-                                    title: "07. Marketing & WhatsApp",
-                                    icon: <MessageCircle size={24} />,
-                                    desc: "Confirmação de horários, aniversariantes e resgate via WhatsApp com um clique.",
-                                    tip: "Use a IA para criar mensagens personalizadas."
-                                },
-                                {
-                                    title: "08. Consultoria Estratégica IA",
-                                    icon: <Sparkles size={24} />,
-                                    desc: "Nossa IA analisa seus dados e te dá dicas de marketing, cortes de custos e estratégias de crescimento.",
-                                    tip: "Consulte a IA pelo menos uma vez por semana."
-                                },
-                                {
-                                    title: "09. Reserva de Emergência",
-                                    icon: <ShieldCheck size={24} />,
-                                    desc: "O sistema calcula automaticamente quanto você precisa ter guardado para 6 meses de segurança total.",
-                                    tip: "Priorize preencher sua barra de segurança."
-                                },
-                                {
-                                    title: "10. Gestão de Sonhos",
-                                    icon: <Target size={24} />,
-                                    desc: "Defina metas de longo prazo (viagens, reformas) e veja o progresso de cada aporte realizado.",
-                                    tip: "Aporte pequenas quantias toda semana."
-                                },
-                                {
-                                    title: "11. Personalização da Marca",
-                                    icon: <Palette size={24} />,
-                                    desc: "Mude a cor do aplicativo para combinar com sua marca e altere o nome que aparece no topo.",
-                                    tip: "Deixe o app com a cara do seu salão!"
-                                },
-                                {
-                                    title: "12. Relatórios & Analytics",
-                                    icon: <BarChart size={24} />,
-                                    desc: "Veja gráficos detalhados de faturamento semanal, mensal e o ranking dos serviços mais vendidos.",
-                                    tip: "Analise quais serviços dão mais lucro real."
-                                }
-                            ].map((item, i) => (
-                                <div key={i} className="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:border-[#b76e79]/30 transition-all duration-500 relative overflow-hidden flex flex-col h-full">
-                                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#b76e79]/5 rounded-bl-full -mr-12 -mt-12 transition-all group-hover:w-32 group-hover:h-32"></div>
-                                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-[#b76e79] mb-6 group-hover:bg-[#b76e79] group-hover:text-white transition-all duration-500 shadow-inner">
-                                        {item.icon}
-                                    </div>
-                                    <h3 className="text-lg font-black text-[#1a365d] uppercase tracking-tight mb-3">{item.title}</h3>
-                                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-6 flex-grow">{item.desc}</p>
-                                    <div className="pt-4 border-t border-slate-50">
-                                        <p className="text-[10px] font-black text-[#b76e79] uppercase tracking-widest flex items-center gap-2">
-                                            <Star size={12} /> Dica de Mestre: {item.tip}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mt-20 bg-[#1a365d] rounded-[3rem] p-10 md:p-16 text-center text-white relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                            <div className="relative z-10 space-y-6">
-                                <h3 className="text-2xl md:text-4xl font-black uppercase tracking-tighter">Ainda tem alguma dúvida?</h3>
-                                <p className="text-slate-300 max-w-xl mx-auto font-medium">Nosso suporte VIP está disponível no WhatsApp para te ajudar em qualquer configuração avançada.</p>
-                                <button className="px-10 py-5 bg-emerald-500 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl hover:bg-emerald-600 transition-all">
-                                    Falar com Suporte Humano
-                                </button>
-                            </div>
-                        </div>
+                        <h2 className="text-3xl sm:text-5xl font-black text-[#1a365d] uppercase tracking-tighter">Veja o FinanPRO por Dentro</h2>
+                        <p className="text-slate-500 font-medium max-w-2xl mx-auto">
+                            Explore como cada ferramenta foi pensada para facilitar sua vida. Clique nos módulos abaixo para ver demonstrações do sistema em funcionamento.
+                        </p>
                     </div>
-                </section>
-            )}
+
+                    <TrainingCenter appColor={appColor} isPublic={true} />
+                </div>
+            </section>
 
 
             {/* RODAPÉ */}

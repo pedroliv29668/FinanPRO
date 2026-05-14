@@ -33,7 +33,7 @@ import MarketingView from './components/MarketingView';
 import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SubscriptionWall from './components/SubscriptionWall';
-import HelpView from './components/HelpView';
+import TrainingCenter from './components/TrainingCenter';
 
 const meses = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
 
@@ -822,7 +822,7 @@ const App: React.FC = () => {
               <MarketingView clientes={clientes} agendamentos={agendamentos} receitas={receitas} appColor={appColor} onEditCliente={(cliente) => { setClienteParaEdicaoGlobal(cliente); setModalGlobalCliente(true); }} isAdmin={isAdmin} />
             )}
             {currentView === 'help' && (
-              <HelpView appColor={appColor} />
+              <TrainingCenter appColor={appColor} />
             )}
 
             {currentView === 'reports' && (
